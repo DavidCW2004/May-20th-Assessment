@@ -40,6 +40,12 @@ TRACKER_ROWS = [
     ["Rust Error Handling and File I/O", "8", "Mapping parse errors", "Convert `parts[1].trim().parse::<u32>()` into a quantity value, returning `Err(\"bad quantity\".to_string())` if parsing fails.", ""],
     ["Rust Error Handling and File I/O", "9", "`unwrap` in library code", "Replace a library function that uses `.unwrap()` on a parse result with a version that lets the caller recover.", ""],
     ["Rust Error Handling and File I/O", "10", "`main` returning `Result`", "Write a `main` signature that can use `?` for file-read and parse errors, and include the final successful return expression.", ""],
+    ["Rust Collections and Data Modelling", "1", "`&str` parameter calls", "Given `fn print_text(text: &str) { println!(\"{text}\"); }` and `let text = String::from(\"hello\");`, write one call with a string literal and one call with the `String` value.", ""],
+    ["Rust Collections and Data Modelling", "2", "Modifying a `String`", "Starting from `let mut text = String::from(\"Hi\");`, write code that produces exactly `Hi! there`, and identify which method takes a `char` versus a `&str`.", ""],
+    ["Rust Collections and Data Modelling", "4", "`Vec::get` missing case", "For `let v = vec![10, 20, 30];`, compare `v[10]` with `v.get(10)`. Include what happens when the index is missing and show how to handle the `get` result.", ""],
+    ["Rust Collections and Data Modelling", "7", "`String` field construction", "Given `struct Book { title: String, pages: u32 }`, create a `Book` from the literal `\"Rust\"` without using a `&str` where a `String` is required.", ""],
+    ["Rust Collections and Data Modelling", "8", "`&self` vs `&mut self`", "In an `impl Counter`, write one method that only reads `value` using `&self` and one method that changes `value` using `&mut self`. Explain why the second one needs `mut`.", ""],
+    ["Rust Collections and Data Modelling", "12", "`Option<T>` and null safety", "Explain why returning `Option<&T>` from a lookup is safer than returning a possible null pointer. Mention what the caller must handle before using the value.", ""],
 ]
 
 RULES_COLUMNS = ["Topic sheet", "Question number", "Topic", "Correct rule"]
@@ -73,6 +79,12 @@ RULES_ROWS = [
     ["Rust Error Handling and File I/O", "8", "Mapping parse errors", "Parse the quantity. If parsing succeeds, use the number. If parsing fails, return `Err(\"bad quantity\".to_string())`; this can be written with `map_err` or `match`."],
     ["Rust Error Handling and File I/O", "9", "`unwrap` in library code", "`unwrap()` panics and makes the failure unrecoverable for the caller. Return `Result` instead so the caller can decide how to handle the error."],
     ["Rust Error Handling and File I/O", "10", "`main` returning `Result`", "Make `main` return a `Result` with an error box so different error types can be propagated. Finish successful execution with `Ok(())`."],
+    ["Rust Collections and Data Modelling", "1", "`&str` parameter calls", "A function taking `&str` can be called with a string literal directly, but a `String` value must be borrowed, for example `print_text(\"hello\")` and `print_text(&text)`."],
+    ["Rust Collections and Data Modelling", "2", "Modifying a `String`", "Use `text.push('!')` for a single character and `text.push_str(\" there\")` for a string slice. A one-line `text.push_str(\"! there\")` also gives the same final string, but it does not demonstrate both methods."],
+    ["Rust Collections and Data Modelling", "4", "`Vec::get` missing case", "`v[10]` panics if index 10 is missing. `v.get(10)` returns `Option<&i32>`, so the caller can handle `Some(value)` and `None` with `match` or `if let` before using the value."],
+    ["Rust Collections and Data Modelling", "7", "`String` field construction", "The field type is `String`, so a string literal must be converted with `String::from(\"Rust\")` or `\"Rust\".to_string()`. Parentheses around a literal do not change its type from `&str` to `String`."],
+    ["Rust Collections and Data Modelling", "8", "`&self` vs `&mut self`", "`&self` is an immutable borrow and is for reading. `&mut self` is a mutable borrow and is required when the method changes fields such as `self.value += 1`."],
+    ["Rust Collections and Data Modelling", "12", "`Option<T>` and null safety", "`Option<T>` makes absence explicit as `None`. The caller must handle `Some` and `None`, so there is no chance of accidentally dereferencing a null pointer before checking whether a value exists."],
 ]
 
 
