@@ -28,7 +28,6 @@ TRACKER_ROWS = [
     ["C Files and Streams", "15", "`ferror` vs `feof`", "After a `while ((ch = fgetc(fp)) != EOF)` loop ends, write the check that distinguishes a read error from clean EOF.", ""],
     ["C Files and Streams", "16", "`rewind` and `fseek`", "After reading some bytes, reset to the start and then jump to byte offset 20. Write the two calls in order.", ""],
     ["C Files and Streams", "17", "Open / write / flush / close", "Write a safe `out.txt` write fragment that does not call `fprintf` if `fopen` fails, and still closes the file.", ""],
-    ["C Preprocessor, Macros, and Headers", "1", "What the preprocessor does", "For `#define N 10` followed by `int a[N];`, describe what the source looks like by the time the compiler sees it.", ""],
     ["C Preprocessor, Macros, and Headers", "2", "`#include`", "For `#include \"stack.h\"` in `main.c`, describe what happens to the contents of `stack.h` before compilation.", ""],
     ["C Preprocessor, Macros, and Headers", "7", "Macro vs function", "Explain why a macro call such as `MAX(i++, j++)` can change variables more times than a function call would.", ""],
     ["C Preprocessor, Macros, and Headers", "8", "Stringification", "Write a tiny macro that prints both an expression's text and its value using stringification.", ""],
@@ -45,36 +44,35 @@ TRACKER_ROWS = [
 
 RULES_COLUMNS = ["Topic sheet", "Question number", "Topic", "Correct rule"]
 RULES_ROWS = [
-    ["C Pointers and Memory", "1", "Pointer basics", "`*p += 3` changes `x`, so `x` and `y` are both 7. `&x` and `p` are address expressions; `x` and `*p` are the integer value."],
+    ["C Pointers and Memory", "1", "Pointer basics", "The pointer update changes `x`, so `x` and `y` are both 7. The address expressions are the address of `x` and `p`; the integer values are `x` and the value reached through `p`."],
     ["C Pointers and Memory", "2", "`sizeof` vs `strlen`", "`sizeof s` is 20 and `strlen(s)` is 5, so 14 more visible characters fit safely because one byte must remain for `\\0`."],
-    ["C Pointers and Memory", "3", "Out-of-bounds access", "The loop writes `a[5]`, which is past the end. Use `i < 5`; possible symptoms include corrupted memory, wrong values, or a crash."],
+    ["C Pointers and Memory", "3", "Out-of-bounds access", "The loop writes `a[5]`, which is past the end. Only use index values 0 to 4; possible symptoms include corrupted memory, wrong values, or a crash."],
     ["C Pointers and Memory", "4", "`malloc` safety check", "Use `if (a == NULL) { /* handle failure before using a */ }`; no code should write through `a` unless the allocation succeeded."],
     ["C Pointers and Memory", "5", "`strcpy` into `char *`", "`char *p` has no storage. Use an array such as `char p[6]; strcpy(p, \"Hello\");` or allocate enough bytes with `malloc` and free them later."],
-    ["C Pointers and Memory", "6", "Dynamic 2D array", "On row allocation failure, free only rows already allocated: `for (int i = 0; i < r; i++) free(X[i]); free(X);`."],
+    ["C Pointers and Memory", "6", "Dynamic 2D array", "On row allocation failure, free only rows already allocated: loop from row 0 up to row r - 1, call `free(X[i])` for each, then `free(X)`."],
     ["Rust Ownership and Borrowing", "7", "Ownership rules", "`s1` is moved into `s2`, so printing `s1` is rejected. Fix by cloning with `let s2 = s1.clone();` or by borrowing instead of moving."],
-    ["Rust Ownership and Borrowing", "8", "Move semantics", "Change the function to borrow, for example `fn takes(s: &String) {}` or `fn takes(s: &str) {}`, then call `takes(&name);` before printing `name`."],
-    ["Rust Ownership and Borrowing", "9", "`&str` parameters and iteration", "Use character iteration, for example `text.chars().filter(|&c| c == 'a').count()`. Byte iteration is not the same as character iteration."],
+    ["Rust Ownership and Borrowing", "8", "Move semantics", "Change the function to borrow instead of take ownership. Prefer a borrowed string-slice parameter; call it with a borrow of `name`, then `name` can still be printed."],
+    ["Rust Ownership and Borrowing", "9", "`&str` parameters and iteration", "Use `text.chars()` to iterate over characters. In the loop, check whether each character is `a` and count matches. Byte iteration is not the same as character iteration."],
     ["Rust Ownership and Borrowing", "10", "Modifying a `String`", "Use `text.push('!');` for one character and `text.push_str(\" there\");` for a string slice."],
-    ["Rust Ownership and Borrowing", "11", "`String` vs `&str`", "Use `&str` for read-only text. A string literal can be passed directly, and a `String` can be passed as `s.as_str()` or `&s`."],
+    ["Rust Ownership and Borrowing", "11", "`String` vs `&str`", "Use a string slice for read-only text. A string literal can be passed directly, and a `String` value can be passed by borrowing it."],
     ["C Files and Streams", "12", "Text vs binary streams", "Use binary mode such as `fopen(path, \"rb\")`. Text mode can translate characters such as newlines, which changes the bytes you read."],
     ["C Files and Streams", "13", "`scanf` basics", "If the input is `abc`, `scanf` returns 0 and `k` is not assigned a new integer. Check `rc == 1` before trusting `k`."],
     ["C Files and Streams", "14", "Buffering and flushing", "Call `fflush(stdout);` after the prompt/progress message if it must appear before later work or before waiting for input."],
     ["C Files and Streams", "15", "`ferror` vs `feof`", "After the loop, `if (ferror(fp)) { ... }` detects a real read error. If not, the `EOF` was just normal end-of-file."],
     ["C Files and Streams", "16", "`rewind` and `fseek`", "Use `rewind(fp);` and then `fseek(fp, 20, SEEK_SET);`; `SEEK_SET` makes the offset relative to the start of the file."],
     ["C Files and Streams", "17", "Open / write / flush / close", "Check `fp == NULL` immediately after `fopen`; only call `fprintf` on a valid `FILE *`, and call `fclose(fp)` before returning."],
-    ["C Preprocessor, Macros, and Headers", "1", "What the preprocessor does", "The preprocessor rewrites source before compilation. `N` is substituted, so the compiler sees something like `int a[10];`."],
     ["C Preprocessor, Macros, and Headers", "2", "`#include`", "`#include \"stack.h\"` makes the preprocessor find the named header and copy its contents into `main.c` at that point."],
     ["C Preprocessor, Macros, and Headers", "7", "Macro vs function", "Macros perform textual substitution and can evaluate arguments multiple times, so `i++` or `j++` may run more than once. Function arguments are evaluated before the function call."],
     ["C Preprocessor, Macros, and Headers", "8", "Stringification", "Use `#` before the macro parameter, for example `#define REPORT_INT(X) printf(\"%s = %d\\n\", #X, X)`."],
     ["C Preprocessor, Macros, and Headers", "9", "Include guards", "A complete guard is `#ifndef STACK_H`, `#define STACK_H`, header contents, then `#endif`."],
-    ["C++ Templates and STL", "2", "Templates vs macros", "Macro text substitution happens before compilation. If the macro generates the same normal function definition in multiple `.cpp` files, the linker can report a multiple-definition error."],
-    ["C++ Templates and STL", "6", "Class template member definitions", "Use `Stack<T>` because `Stack` alone is only the template name. The definition starts `template<typename T> T Stack<T>::pop()`."],
-    ["C++ Templates and STL", "7", "Template definitions in headers", "The compiler must see the full template body when it instantiates a type-specific version such as `max_value<int>`, so template definitions are usually visible in headers."],
-    ["C++ Templates and STL", "10", "Vector iterators", "Use `for (auto it = v.begin(); it != v.end(); it++) { std::cout << *it << std::endl; }`."],
-    ["Rust Error Handling and File I/O", "6", "`?` and return types", "`?` may return an error early, so the function cannot return plain `i32`. Use a compatible `Result`, for example `fn parse_num(text: &str) -> Result<i32, std::num::ParseIntError>`."],
-    ["Rust Error Handling and File I/O", "8", "Mapping parse errors", "Use `parts[1].trim().parse::<u32>().map_err(|_| \"bad quantity\".to_string())?` or an equivalent `match` that returns `Err(\"bad quantity\".to_string())` on failure."],
+    ["C++ Templates and STL", "2", "Templates vs macros", "Macros are expanded as text before compilation. If two `.cpp` files expand the macro into the same normal function definition, the linker sees two definitions and reports an error."],
+    ["C++ Templates and STL", "6", "Class template member definitions", "Use the class template with its type parameter, not plain `Stack`. For the outside `pop` definition: write the template line for `T`, then return `T`, then define `pop` inside Stack of T."],
+    ["C++ Templates and STL", "7", "Template definitions in headers", "A template body must be visible wherever the compiler creates a real version. If another file calls `max_value(2, 3)`, it needs the function body in the header, not only the prototype."],
+    ["C++ Templates and STL", "10", "Vector iterators", "Iterator pattern: start with `auto it = v.begin()`, continue while `it != v.end()`, increment with `it++`, and print the current value with `*it`."],
+    ["Rust Error Handling and File I/O", "6", "`?` and return types", "`?` can stop the function and return the error early. That means the function must return a compatible `Result`, not plain `i32`."],
+    ["Rust Error Handling and File I/O", "8", "Mapping parse errors", "Parse the quantity. If parsing succeeds, use the number. If parsing fails, return `Err(\"bad quantity\".to_string())`; this can be written with `map_err` or `match`."],
     ["Rust Error Handling and File I/O", "9", "`unwrap` in library code", "`unwrap()` panics and makes the failure unrecoverable for the caller. Return `Result` instead so the caller can decide how to handle the error."],
-    ["Rust Error Handling and File I/O", "10", "`main` returning `Result`", "Use `fn main() -> Result<(), Box<dyn std::error::Error>>` and finish successful execution with `Ok(())`."],
+    ["Rust Error Handling and File I/O", "10", "`main` returning `Result`", "Make `main` return a `Result` with an error box so different error types can be propagated. Finish successful execution with `Ok(())`."],
 ]
 
 
@@ -90,12 +88,29 @@ def inline_cell(ref: str, value: str, style: int = 2) -> str:
     return f'<c r="{ref}" t="inlineStr" s="{style}"><is><t>{escape(value)}</t></is></c>'
 
 
-def sheet_xml(rows: list[list[str]], columns: list[str], table_range: str, rel_id: str, widths: list[float]) -> str:
+def estimated_row_height(row: list[str], widths: list[float], min_height: int = 54) -> int:
+    max_lines = 1
+    for value, width in zip(row, widths):
+        chars_per_line = max(12, int(width * 1.1))
+        lines = value.splitlines() or [""]
+        wrapped_lines = sum(max(1, (len(line) + chars_per_line - 1) // chars_per_line) for line in lines)
+        max_lines = max(max_lines, wrapped_lines)
+    return min(140, max(min_height, 18 * max_lines))
+
+
+def sheet_xml(
+    rows: list[list[str]],
+    columns: list[str],
+    table_range: str,
+    rel_id: str,
+    widths: list[float],
+    min_body_height: int = 54,
+) -> str:
     sheet_rows = [columns] + rows
     xml_rows = []
     for row_index, row in enumerate(sheet_rows, start=1):
         style = 1 if row_index == 1 else 2
-        height = 24 if row_index == 1 else 54
+        height = 24 if row_index == 1 else estimated_row_height(row, widths, min_body_height)
         cells = []
         for column_index, value in enumerate(row, start=1):
             cells.append(inline_cell(f"{col_name(column_index)}{row_index}", value, style))
@@ -202,8 +217,10 @@ def build_xlsx() -> None:
   <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>
   <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
 </Relationships>''',
-        "xl/worksheets/sheet1.xml": sheet_xml(TRACKER_ROWS, TRACKER_COLUMNS, tracker_ref, "rId1", [28, 10, 24, 68, 14]),
-        "xl/worksheets/sheet2.xml": sheet_xml(RULES_ROWS, RULES_COLUMNS, rules_ref, "rId1", [28, 10, 24, 70]),
+        "xl/worksheets/sheet1.xml": sheet_xml(TRACKER_ROWS, TRACKER_COLUMNS, tracker_ref, "rId1", [28, 14, 24, 68, 14]),
+        "xl/worksheets/sheet2.xml": sheet_xml(
+            RULES_ROWS, RULES_COLUMNS, rules_ref, "rId1", [28, 14, 28, 95], min_body_height=72
+        ),
         "xl/worksheets/_rels/sheet1.xml.rels": '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/table" Target="../tables/table1.xml"/></Relationships>''',
         "xl/worksheets/_rels/sheet2.xml.rels": '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
