@@ -3,6 +3,7 @@ from __future__ import annotations
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape
 
 
@@ -11,7 +12,7 @@ OUTPUT = ROOT / "revision-mistake-log.xlsx"
 
 TRACKER_COLUMNS = ["Topic sheet", "Question number", "Topic", "Redo prompt", "Completed"]
 TRACKER_ROWS = [
-    ["C Pointers and Memory", "1", "Pointer basics", "Given `int x = 4; int *p = &x; *p += 3; int y = *p;`, work out `x` and `y`, then identify which expression is the address.", ""],
+    ["C Pointers and Memory", "1", "Pointer basics", "Given `int x = 4; int *p` pointing at `x`; then `*p += 3; int y = *p;`, work out `x` and `y`, then identify which expression is the address.", ""],
     ["C Pointers and Memory", "2", "`sizeof` vs `strlen`", "For `char s[20] = \"Hello\";`, work out how many more visible characters can be appended safely, leaving room for `\\0`.", "Yes"],
     ["C Pointers and Memory", "3", "Out-of-bounds access", "Find the bug in `int a[5]; for (int i = 0; i <= 5; i++) a[i] = 0;`, fix the loop condition, and give one likely symptom.", "Yes"],
     ["C Pointers and Memory", "4", "`malloc` safety check", "Complete the missing failure path after `int *a = malloc(n * sizeof *a);` before a loop writes to `a[i]`.", "Yes"],
@@ -19,11 +20,11 @@ TRACKER_ROWS = [
     ["C Pointers and Memory", "6", "Dynamic 2D array", "If row `r` fails while allocating `int **X`, write the cleanup for rows `0` to `r - 1` and then `X` itself.", "Yes"],
     ["Rust Ownership and Borrowing", "7", "Ownership rules", "For `let s1 = String::from(\"hi\"); let s2 = s1; println!(\"{s1} {s2}\");`, explain the compiler error and give one fix.", "Yes"],
     ["Rust Ownership and Borrowing", "8", "Move semantics", "Fix `fn takes(s: String) {}` followed by `takes(name); println!(\"{name}\");` so `name` can still be printed.", ""],
-    ["Rust Ownership and Borrowing", "9", "`&str` parameters and iteration", "Write `fn count_a(text: &str) -> usize` so it counts `a` characters, using the right string iteration method.", ""],
+    ["Rust Ownership and Borrowing", "9", "Borrowed string-slice parameters and iteration", "Write a `count_a` function that borrows a string slice and returns `usize`, so it counts `a` characters using the right string iteration method.", ""],
     ["Rust Ownership and Borrowing", "10", "Modifying a `String`", "Starting from `let mut text = String::from(\"Hi\");`, write the two lines that produce `Hi! there`.", "Yes"],
-    ["Rust Ownership and Borrowing", "11", "`String` vs `&str`", "Choose a function parameter type for read-only text that accepts both string literals and `String` values, then show both calls.", "Yes"],
+    ["Rust Ownership and Borrowing", "11", "`String` vs borrowed string slices", "Choose a function parameter type for read-only text that accepts both string literals and `String` values, then show both calls.", "Yes"],
     ["C Files and Streams", "12", "Text vs binary streams", "You are checking exact file bytes for a checksum. Choose the `fopen` mode and explain what text mode could change.", ""],
-    ["C Files and Streams", "13", "`scanf` basics", "For `int k = 99; int rc = scanf(\"%d\", &k);`, handle the case where the user types `abc` instead of a number.", ""],
+    ["C Files and Streams", "13", "`scanf` basics", "For `int k = 99; int rc = scanf(\"%d\", address of k);`, handle the case where the user types `abc` instead of a number.", ""],
     ["C Files and Streams", "14", "Buffering and flushing", "A long task starts after `printf(\"Working...\");` but nothing appears yet. Add the missing call and explain why it belongs there.", ""],
     ["C Files and Streams", "15", "`ferror` vs `feof`", "After a `while ((ch = fgetc(fp)) != EOF)` loop ends, write the check that distinguishes a read error from clean EOF.", ""],
     ["C Files and Streams", "16", "`rewind` and `fseek`", "After reading some bytes, reset to the start and then jump to byte offset 20. Write the two calls in order.", ""],
@@ -36,16 +37,21 @@ TRACKER_ROWS = [
     ["C++ Templates and STL", "6", "Class template member definitions", "Complete the outside-class definition header for `pop`: `template<typename T> T ______::pop()`.", ""],
     ["C++ Templates and STL", "7", "Template definitions in headers", "Given `template<typename T> T max_value(T a, T b);` in a header and the body only in a `.cpp`, explain why another `.cpp` using `max_value(2, 3)` may fail.", ""],
     ["C++ Templates and STL", "10", "Vector iterators", "Write the full `for` loop using `auto`, `begin()`, `end()`, and dereferencing to print every element of `std::vector<int> v`.", ""],
-    ["Rust Error Handling and File I/O", "6", "`?` and return types", "Given `fn parse_num(text: &str) -> i32 { let n = text.parse::<i32>()?; n }`, explain why this cannot compile and fix the return type.", ""],
+    ["Rust Error Handling and File I/O", "6", "`?` and return types", "Given a `parse_num` function that borrows a string slice, parses an `i32` with `?`, and returns plain `i32`, explain why this cannot compile and fix the return type.", ""],
     ["Rust Error Handling and File I/O", "8", "Mapping parse errors", "Convert `parts[1].trim().parse::<u32>()` into a quantity value, returning `Err(\"bad quantity\".to_string())` if parsing fails.", ""],
     ["Rust Error Handling and File I/O", "9", "`unwrap` in library code", "Replace a library function that uses `.unwrap()` on a parse result with a version that lets the caller recover.", ""],
     ["Rust Error Handling and File I/O", "10", "`main` returning `Result`", "Write a `main` signature that can use `?` for file-read and parse errors, and include the final successful return expression.", ""],
-    ["Rust Collections and Data Modelling", "1", "`&str` parameter calls", "Given `fn print_text(text: &str) { println!(\"{text}\"); }` and `let text = String::from(\"hello\");`, write one call with a string literal and one call with the `String` value.", ""],
-    ["Rust Collections and Data Modelling", "2", "Modifying a `String`", "Starting from `let mut text = String::from(\"Hi\");`, write code that produces exactly `Hi! there`, and identify which method takes a `char` versus a `&str`.", ""],
+    ["Rust Collections and Data Modelling", "1", "Borrowed string-slice parameter calls", "Given a `print_text` function that borrows a string slice and `let text = String::from(\"hello\");`, write one call with a string literal and one call with the `String` value.", ""],
+    ["Rust Collections and Data Modelling", "2", "Modifying a `String`", "Starting from `let mut text = String::from(\"Hi\");`, write code that produces exactly `Hi! there`, and identify which method takes a `char` versus a borrowed string slice.", ""],
     ["Rust Collections and Data Modelling", "4", "`Vec::get` missing case", "For `let v = vec![10, 20, 30];`, compare `v[10]` with `v.get(10)`. Include what happens when the index is missing and show how to handle the `get` result.", ""],
-    ["Rust Collections and Data Modelling", "7", "`String` field construction", "Given `struct Book { title: String, pages: u32 }`, create a `Book` from the literal `\"Rust\"` without using a `&str` where a `String` is required.", ""],
-    ["Rust Collections and Data Modelling", "8", "`&self` vs `&mut self`", "In an `impl Counter`, write one method that only reads `value` using `&self` and one method that changes `value` using `&mut self`. Explain why the second one needs `mut`.", ""],
-    ["Rust Collections and Data Modelling", "12", "`Option<T>` and null safety", "Explain why returning `Option<&T>` from a lookup is safer than returning a possible null pointer. Mention what the caller must handle before using the value.", ""],
+    ["Rust Collections and Data Modelling", "7", "`String` field construction", "Given `struct Book { title: String, pages: u32 }`, create a `Book` from the literal `\"Rust\"` without using a borrowed string slice where a `String` is required.", ""],
+    ["Rust Collections and Data Modelling", "8", "Immutable vs mutable self borrows", "In an `impl Counter`, write one method that only reads `value` using an immutable self borrow and one method that changes `value` using a mutable self borrow. Explain why the second one needs `mut`.", ""],
+    ["Rust Collections and Data Modelling", "12", "`Option<T>` and null safety", "Explain why returning `Option` containing a borrowed value from a lookup is safer than returning a possible null pointer. Mention what the caller must handle before using the value.", ""],
+    ["C Function Pointers and Callbacks", "5", "Callback received by `apply`", "Complete `int apply(int a, int b, int (*fn)(int, int)) { return _____; }`, then trace what happens when it is called as `apply(1, 3, Plus)`.", ""],
+    ["C Function Pointers and Callbacks", "6", "`qsort` arguments", "Complete the call that sorts `int values[] = {3, 1, 2};` using `compare_ints`: `qsort(_____, _____, _____, _____);`.", ""],
+    ["C Function Pointers and Callbacks", "7", "Integer comparator steps", "Fill in the body of `int compare_ints(const void *p, const void *q)` so it works correctly with `qsort` on an integer array.", ""],
+    ["C Function Pointers and Callbacks", "9", "`const void *` comparator parameters", "`qsort` rejects `int compare_ints(int *a, int *b)`. Fix the signature and explain why the fixed version matches `qsort`.", ""],
+    ["C Function Pointers and Callbacks", "10", "Pointer arithmetic with `char *`", "In generic array code with `void *array` and `size_t width`, write the expression for the address of element `i` after converting the base pointer to `char *`.", ""],
 ]
 
 RULES_COLUMNS = ["Topic sheet", "Question number", "Topic", "Correct rule"]
@@ -57,10 +63,10 @@ RULES_ROWS = [
     ["C Pointers and Memory", "5", "`strcpy` into `char *`", "`char *p` has no storage. Use an array such as `char p[6]; strcpy(p, \"Hello\");` or allocate enough bytes with `malloc` and free them later."],
     ["C Pointers and Memory", "6", "Dynamic 2D array", "On row allocation failure, free only rows already allocated: loop from row 0 up to row r - 1, call `free(X[i])` for each, then `free(X)`."],
     ["Rust Ownership and Borrowing", "7", "Ownership rules", "`s1` is moved into `s2`, so printing `s1` is rejected. Fix by cloning with `let s2 = s1.clone();` or by borrowing instead of moving."],
-    ["Rust Ownership and Borrowing", "8", "Move semantics", "Change the function to borrow instead of take ownership. Prefer a borrowed string-slice parameter; call it with a borrow of `name`, then `name` can still be printed."],
-    ["Rust Ownership and Borrowing", "9", "`&str` parameters and iteration", "Use `text.chars()` to iterate over characters. In the loop, check whether each character is `a` and count matches. Byte iteration is not the same as character iteration."],
+    ["Rust Ownership and Borrowing", "8", "Move semantics", "Change the function to borrow a string slice instead of taking ownership, then call it with a borrow of `name`. A borrow does not move `name`, so it can still be printed."],
+    ["Rust Ownership and Borrowing", "9", "Borrowed string-slice parameters and iteration", "Use `text.chars()` to iterate over characters. In the loop, check whether each character is `a` and count matches. Byte iteration is not the same as character iteration."],
     ["Rust Ownership and Borrowing", "10", "Modifying a `String`", "Use `text.push('!');` for one character and `text.push_str(\" there\");` for a string slice."],
-    ["Rust Ownership and Borrowing", "11", "`String` vs `&str`", "Use a string slice for read-only text. A string literal can be passed directly, and a `String` value can be passed by borrowing it."],
+    ["Rust Ownership and Borrowing", "11", "`String` vs borrowed string slices", "Use a borrowed string-slice parameter for read-only text. A string literal can be passed directly, and a `String` value can be passed by borrowing it."],
     ["C Files and Streams", "12", "Text vs binary streams", "Use binary mode such as `fopen(path, \"rb\")`. Text mode can translate characters such as newlines, which changes the bytes you read."],
     ["C Files and Streams", "13", "`scanf` basics", "If the input is `abc`, `scanf` returns 0 and `k` is not assigned a new integer. Check `rc == 1` before trusting `k`."],
     ["C Files and Streams", "14", "Buffering and flushing", "Call `fflush(stdout);` after the prompt/progress message if it must appear before later work or before waiting for input."],
@@ -72,20 +78,168 @@ RULES_ROWS = [
     ["C Preprocessor, Macros, and Headers", "8", "Stringification", "Use `#` before the macro parameter, for example `#define REPORT_INT(X) printf(\"%s = %d\\n\", #X, X)`."],
     ["C Preprocessor, Macros, and Headers", "9", "Include guards", "A complete guard is `#ifndef STACK_H`, `#define STACK_H`, header contents, then `#endif`."],
     ["C++ Templates and STL", "2", "Templates vs macros", "Macros are expanded as text before compilation. If two `.cpp` files expand the macro into the same normal function definition, the linker sees two definitions and reports an error."],
-    ["C++ Templates and STL", "6", "Class template member definitions", "Use the class template with its type parameter, not plain `Stack`. For the outside `pop` definition: write the template line for `T`, then return `T`, then define `pop` inside Stack of T."],
+    ["C++ Templates and STL", "6", "Class template member definitions", "The completed header is `template<typename T> T Stack<T>::pop()`. The `Stack<T>` part is needed because `pop` belongs to the class template instantiated with `T`."],
     ["C++ Templates and STL", "7", "Template definitions in headers", "A template body must be visible wherever the compiler creates a real version. If another file calls `max_value(2, 3)`, it needs the function body in the header, not only the prototype."],
-    ["C++ Templates and STL", "10", "Vector iterators", "Iterator pattern: start with `auto it = v.begin()`, continue while `it != v.end()`, increment with `it++`, and print the current value with `*it`."],
-    ["Rust Error Handling and File I/O", "6", "`?` and return types", "`?` can stop the function and return the error early. That means the function must return a compatible `Result`, not plain `i32`."],
-    ["Rust Error Handling and File I/O", "8", "Mapping parse errors", "Parse the quantity. If parsing succeeds, use the number. If parsing fails, return `Err(\"bad quantity\".to_string())`; this can be written with `map_err` or `match`."],
+    ["C++ Templates and STL", "10", "Vector iterators", "Use `for (auto it = v.begin(); it != v.end(); ++it) { std::cout << *it; }`. The iterator points at each element, and `*it` reads the current value."],
+    ["Rust Error Handling and File I/O", "6", "`?` and return types", "`?` can return the parse error early, so the function must return a compatible `Result`, such as a result containing `i32` on success and `std::num::ParseIntError` on failure, then return `Ok(n)`."],
+    ["Rust Error Handling and File I/O", "8", "Mapping parse errors", "Use `let quantity = parts[1].trim().parse::<u32>().map_err(|_| \"bad quantity\".to_string())?;` so a parse failure becomes the requested `Err` message."],
     ["Rust Error Handling and File I/O", "9", "`unwrap` in library code", "`unwrap()` panics and makes the failure unrecoverable for the caller. Return `Result` instead so the caller can decide how to handle the error."],
-    ["Rust Error Handling and File I/O", "10", "`main` returning `Result`", "Make `main` return a `Result` with an error box so different error types can be propagated. Finish successful execution with `Ok(())`."],
-    ["Rust Collections and Data Modelling", "1", "`&str` parameter calls", "A function taking `&str` can be called with a string literal directly, but a `String` value must be borrowed, for example `print_text(\"hello\")` and `print_text(&text)`."],
+    ["Rust Error Handling and File I/O", "10", "`main` returning `Result`", "Use `fn main() -> Result<(), Box<dyn std::error::Error>>` so file-read and parse errors can be propagated with `?`. Finish successful execution with `Ok(())`."],
+    ["Rust Collections and Data Modelling", "1", "Borrowed string-slice parameter calls", "A function taking a borrowed string slice can be called with a string literal directly. A `String` value must be borrowed, so call with the string literal first and then call again by borrowing `text`."],
     ["Rust Collections and Data Modelling", "2", "Modifying a `String`", "Use `text.push('!')` for a single character and `text.push_str(\" there\")` for a string slice. A one-line `text.push_str(\"! there\")` also gives the same final string, but it does not demonstrate both methods."],
-    ["Rust Collections and Data Modelling", "4", "`Vec::get` missing case", "`v[10]` panics if index 10 is missing. `v.get(10)` returns `Option<&i32>`, so the caller can handle `Some(value)` and `None` with `match` or `if let` before using the value."],
-    ["Rust Collections and Data Modelling", "7", "`String` field construction", "The field type is `String`, so a string literal must be converted with `String::from(\"Rust\")` or `\"Rust\".to_string()`. Parentheses around a literal do not change its type from `&str` to `String`."],
-    ["Rust Collections and Data Modelling", "8", "`&self` vs `&mut self`", "`&self` is an immutable borrow and is for reading. `&mut self` is a mutable borrow and is required when the method changes fields such as `self.value += 1`."],
-    ["Rust Collections and Data Modelling", "12", "`Option<T>` and null safety", "`Option<T>` makes absence explicit as `None`. The caller must handle `Some` and `None`, so there is no chance of accidentally dereferencing a null pointer before checking whether a value exists."],
+    ["Rust Collections and Data Modelling", "4", "`Vec::get` missing case", "`v[10]` panics if index 10 is missing. `v.get(10)` returns an `Option` containing a possible borrowed value, so the caller can handle `Some(value)` and `None` with `match` or `if let`."],
+    ["Rust Collections and Data Modelling", "7", "`String` field construction", "The field type is `String`, so a string literal must be converted with `String::from(\"Rust\")` or `\"Rust\".to_string()`. Parentheses around a literal do not change it from a borrowed string slice to `String`."],
+    ["Rust Collections and Data Modelling", "8", "Immutable vs mutable self borrows", "An immutable self borrow is for reading. A mutable self borrow is required when the method changes fields such as `self.value += 1`."],
+    ["Rust Collections and Data Modelling", "12", "`Option<T>` and null safety", "Returning an `Option` containing a borrowed value makes absence explicit as `None`. The caller must handle `Some` and `None`, so there is no chance of accidentally dereferencing a null pointer before checking whether a value exists."],
+    ["C Function Pointers and Callbacks", "5", "Callback received by `apply`", "The callback is `Plus`. `apply` receives `Plus` through its function pointer parameter, then calls that pointer to decide what operation to perform."],
+    ["C Function Pointers and Callbacks", "6", "`qsort` arguments", "`qsort` receives the base pointer, number of elements, size of each element in bytes, and comparator callback. For `int values[] = {3, 1, 2};`, use `values`, 3, `sizeof values[0]`, and `compare_ints`."],
+    ["C Function Pointers and Callbacks", "7", "Integer comparator steps", "An integer comparator receives two `const void *` pointers, treats them as `const int *`, compares the pointed-to integer values, and returns negative, zero, or positive."],
+    ["C Function Pointers and Callbacks", "9", "`const void *` comparator parameters", "`qsort` is generic, so the comparator receives pointers to elements of unknown type. `const` means those pointed-to elements are read-only inside the comparator."],
+    ["C Function Pointers and Callbacks", "10", "Pointer arithmetic with `char *`", "Pointer arithmetic moves by the size of the pointed-to type. Generic array code uses `char *` because one step is one byte, so byte offsets such as `i * width` can locate element `i`."],
 ]
+
+
+SHEET_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+REL_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+PACKAGE_REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+XML_NS = {"m": SHEET_NS, "r": REL_NS, "rel": PACKAGE_REL_NS}
+
+
+def stable_tracker_key(row: list[str]) -> tuple[str, str]:
+    return tuple(value.strip() for value in row[:2])
+
+
+def column_number(cell_ref: str) -> int:
+    column = "".join(char for char in cell_ref if char.isalpha())
+    number = 0
+    for char in column:
+        number = number * 26 + ord(char.upper()) - 64
+    return number
+
+
+def cell_text(cell: ET.Element, shared_strings: list[str]) -> str:
+    cell_type = cell.get("t")
+    if cell_type == "inlineStr":
+        return "".join(text.text or "" for text in cell.findall(".//m:t", XML_NS))
+
+    value = cell.find("m:v", XML_NS)
+    if value is None or value.text is None:
+        return ""
+
+    if cell_type == "s":
+        index = int(value.text)
+        return shared_strings[index] if index < len(shared_strings) else ""
+
+    return value.text
+
+
+def shared_strings(xlsx: zipfile.ZipFile) -> list[str]:
+    if "xl/sharedStrings.xml" not in xlsx.namelist():
+        return []
+
+    root = ET.fromstring(xlsx.read("xl/sharedStrings.xml"))
+    return [
+        "".join(text.text or "" for text in item.findall(".//m:t", XML_NS))
+        for item in root.findall("m:si", XML_NS)
+    ]
+
+
+def workbook_sheet_path(xlsx: zipfile.ZipFile, sheet_name: str) -> str | None:
+    workbook = ET.fromstring(xlsx.read("xl/workbook.xml"))
+    relationships = ET.fromstring(xlsx.read("xl/_rels/workbook.xml.rels"))
+    relationship_targets = {
+        relationship.get("Id"): relationship.get("Target")
+        for relationship in relationships.findall("rel:Relationship", XML_NS)
+    }
+
+    for sheet in workbook.findall("m:sheets/m:sheet", XML_NS):
+        if sheet.get("name") != sheet_name:
+            continue
+
+        relationship_id = sheet.get(f"{{{REL_NS}}}id")
+        target = relationship_targets.get(relationship_id)
+        if target is None:
+            return None
+        return target[1:] if target.startswith("/") else f"xl/{target}"
+
+    return None
+
+
+def sheet_rows_from_xlsx(path: Path, sheet_name: str) -> list[list[str]]:
+    with zipfile.ZipFile(path) as xlsx:
+        sheet_path = workbook_sheet_path(xlsx, sheet_name)
+        if sheet_path is None:
+            return []
+
+        strings = shared_strings(xlsx)
+        root = ET.fromstring(xlsx.read(sheet_path))
+        rows = []
+
+        for row in root.findall("m:sheetData/m:row", XML_NS):
+            by_column: dict[int, str] = {}
+            max_column = 0
+
+            for cell in row.findall("m:c", XML_NS):
+                reference = cell.get("r", "")
+                column = column_number(reference)
+                if column == 0:
+                    continue
+
+                max_column = max(max_column, column)
+                by_column[column] = cell_text(cell, strings)
+
+            rows.append([by_column.get(index, "") for index in range(1, max_column + 1)])
+
+        return rows
+
+
+def completed_marks_from_existing_workbook(path: Path) -> dict[tuple[str, str], str]:
+    if not path.exists():
+        return {}
+
+    try:
+        rows = sheet_rows_from_xlsx(path, "Tracker")
+    except (ET.ParseError, KeyError, ValueError, zipfile.BadZipFile) as error:
+        raise RuntimeError(f"Could not read existing completion marks from {path}") from error
+
+    if not rows:
+        raise RuntimeError(f"Could not find a Tracker sheet in {path}")
+
+    headers = rows[0]
+    try:
+        topic_index = headers.index("Topic sheet")
+        question_index = headers.index("Question number")
+        completed_index = headers.index("Completed")
+    except ValueError as error:
+        raise RuntimeError(f"Tracker sheet in {path} is missing an expected column") from error
+
+    marks = {}
+    needed_columns = max(topic_index, question_index, completed_index)
+    for row in rows[1:]:
+        if len(row) <= needed_columns:
+            continue
+
+        key = (
+            row[topic_index].strip(),
+            row[question_index].strip(),
+        )
+        marks[key] = row[completed_index].strip()
+
+    return marks
+
+
+def tracker_rows_with_existing_completed_marks(path: Path) -> list[list[str]]:
+    completed_marks = completed_marks_from_existing_workbook(path)
+    rows = []
+
+    for row in TRACKER_ROWS:
+        copied_row = row.copy()
+        key = stable_tracker_key(copied_row)
+        if key in completed_marks:
+            copied_row[4] = completed_marks[key]
+        rows.append(copied_row)
+
+    return rows
 
 
 def col_name(index: int) -> str:
@@ -192,7 +346,8 @@ def styles_xml() -> str:
 
 
 def build_xlsx() -> None:
-    tracker_ref = f"A1:{col_name(len(TRACKER_COLUMNS))}{len(TRACKER_ROWS) + 1}"
+    tracker_rows = tracker_rows_with_existing_completed_marks(OUTPUT)
+    tracker_ref = f"A1:{col_name(len(TRACKER_COLUMNS))}{len(tracker_rows) + 1}"
     rules_ref = f"A1:{col_name(len(RULES_COLUMNS))}{len(RULES_ROWS) + 1}"
     now = datetime.now(timezone.utc).isoformat()
 
@@ -229,7 +384,7 @@ def build_xlsx() -> None:
   <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>
   <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
 </Relationships>''',
-        "xl/worksheets/sheet1.xml": sheet_xml(TRACKER_ROWS, TRACKER_COLUMNS, tracker_ref, "rId1", [28, 14, 24, 68, 14]),
+        "xl/worksheets/sheet1.xml": sheet_xml(tracker_rows, TRACKER_COLUMNS, tracker_ref, "rId1", [28, 14, 24, 68, 14]),
         "xl/worksheets/sheet2.xml": sheet_xml(
             RULES_ROWS, RULES_COLUMNS, rules_ref, "rId1", [28, 14, 28, 95], min_body_height=72
         ),

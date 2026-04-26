@@ -156,7 +156,7 @@ fn print_lines(path: &str) -> Result<(), std::io::Error> {
         ),
         p("6. Parsing and custom errors", styles, "DarkHeading"),
         p(
-            "Worksheet exercises use functions like <font face=\"Courier\">parse_item(line: &amp;str) -&gt; Result&lt;Item, String&gt;</font>. Return <font face=\"Courier\">Ok(value)</font> when parsing succeeds and <font face=\"Courier\">Err(message)</font> when the line has the wrong number of fields or a field cannot be parsed.",
+            "Worksheet exercises use functions like <font face=\"Courier\">parse_item(line: &#38;str) -&gt; Result&lt;Item, String&gt;</font>. Return <font face=\"Courier\">Ok(value)</font> when parsing succeeds and <font face=\"Courier\">Err(message)</font> when the line has the wrong number of fields or a field cannot be parsed.",
             styles,
         ),
         code(
@@ -232,7 +232,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "It returns a <font face=\"Courier\">Result&lt;i32, _&gt;</font>. For <font face=\"Courier\">\"abc\"</font>, parsing as <font face=\"Courier\">i32</font> fails, so the result is <font face=\"Courier\">Err</font>.",
                 "A correct answer matches <font face=\"Courier\">Ok(n)</font> and <font face=\"Courier\">Err(_)</font>, printing <font face=\"Courier\">invalid number</font> in the error arm.",
                 "Expected pattern: <font face=\"Courier\">let n = text.parse::&lt;i32&gt;()?; Ok(n * 2)</font> inside a function returning <font face=\"Courier\">Result&lt;i32, ParseIntError&gt;</font>.",
-                "Expected pattern: <font face=\"Courier\">fn read_file(path: &amp;str) -&gt; Result&lt;String, std::io::Error&gt; { let text = std::fs::read_to_string(path)?; Ok(text) }</font>.",
+                "Expected pattern: <font face=\"Courier\">fn read_file(path: &#38;str) -&gt; Result&lt;String, std::io::Error&gt; { let text = std::fs::read_to_string(path)?; Ok(text) }</font>.",
                 "Because <font face=\"Courier\">?</font> may need to return an error early. A plain <font face=\"Courier\">i32</font> return type has nowhere to put the error.",
                 "Expected: split with <font face=\"Courier\">line.split(',')</font>, collect or count fields, and return <font face=\"Courier\">Err(...)</font> unless there are exactly three fields.",
                 "Valid answers include <font face=\"Courier\">parts[1].trim().parse::&lt;u32&gt;().map_err(|_| \"bad quantity\".to_string())?</font> or an equivalent <font face=\"Courier\">match</font>.",

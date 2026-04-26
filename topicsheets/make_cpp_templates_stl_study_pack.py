@@ -126,7 +126,7 @@ myswap(c, d);        // T is std::string
             """,
             styles,
         ),
-        p("If the argument types do not match the template, the compiler rejects the call. For example, <font face=\"Courier\">myswap(a, f)</font> with an <font face=\"Courier\">int</font> and a <font face=\"Courier\">float</font> is not a match for <font face=\"Courier\">T &amp;x, T &amp;y</font>.", styles),
+        p("If the argument types do not match the template, the compiler rejects the call. For example, <font face=\"Courier\">myswap(a, f)</font> with an <font face=\"Courier\">int</font> and a <font face=\"Courier\">float</font> is not a match for <font face=\"Courier\">T &#38;x, T &#38;y</font>.", styles),
         p("4. Class templates", styles, "DarkHeading"),
         p("A class template builds a family of similar classes. A stack of integers and a stack of strings can share one template definition.", styles),
         code(
@@ -225,8 +225,8 @@ for (auto it = v.begin(); it != v.end(); it++) {
             [
                 "A template avoids duplicated logic. The compiler generates type-specific versions when used, so one generic definition works for many types.",
                 "Macros are text substitution before compilation. They can cause repeated definitions, poor type checking, and harder-to-trace errors.",
-                "Expected pattern: <font face=\"Courier\">template&lt;typename T&gt; void myswap(T &amp;x, T &amp;y) { T temp = x; x = y; y = temp; }</font>.",
-                "The template expects both parameters to have the same <font face=\"Courier\">T</font>. An <font face=\"Courier\">int</font> and a <font face=\"Courier\">float</font> cannot both bind to one same <font face=\"Courier\">T</font> in <font face=\"Courier\">myswap(T&amp;, T&amp;)</font>.",
+                "Expected pattern: <font face=\"Courier\">template&lt;typename T&gt; void myswap(T &#38;x, T &#38;y) { T temp = x; x = y; y = temp; }</font>.",
+                "The template expects both parameters to have the same <font face=\"Courier\">T</font>. An <font face=\"Courier\">int</font> and a <font face=\"Courier\">float</font> cannot both bind to one same <font face=\"Courier\">T</font> in <font face=\"Courier\">myswap(T&#38;, T&#38;)</font>.",
                 "A valid answer defines <font face=\"Courier\">template&lt;typename T&gt; class Box { T value; public: T get(); };</font> or equivalent.",
                 "<font face=\"Courier\">Stack</font> is the template name, not a concrete type. <font face=\"Courier\">Stack&lt;T&gt;</font> is the templated class being defined for a particular type parameter.",
                 "The compiler needs to see the full template definition when it instantiates the template for a specific type, so header-only template definitions are common.",

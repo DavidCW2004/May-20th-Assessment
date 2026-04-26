@@ -76,9 +76,9 @@ def build():
             "SourceText",
         ),
         p("Description: What You Need To Know", styles, "BlueHeading"),
-        p("1. <font face=\"Courier\">String</font> and <font face=\"Courier\">&amp;str</font>", styles, "DarkHeading"),
+        p("1. <font face=\"Courier\">String</font> and <font face=\"Courier\">&#38;str</font>", styles, "DarkHeading"),
         p(
-            "<font face=\"Courier\">String</font> is owned, heap-allocated, and growable. <font face=\"Courier\">&amp;str</font> is a borrowed string slice: a view into text owned somewhere else. For read-only function parameters, prefer <font face=\"Courier\">&amp;str</font> because it accepts both string literals and borrowed <font face=\"Courier\">String</font> values.",
+            "<font face=\"Courier\">String</font> is owned, heap-allocated, and growable. <font face=\"Courier\">&#38;str</font> is a borrowed string slice: a view into text owned somewhere else. For read-only function parameters, prefer <font face=\"Courier\">&#38;str</font> because it accepts both string literals and borrowed <font face=\"Courier\">String</font> values.",
             styles,
         ),
         code(
@@ -120,7 +120,7 @@ names.push("Ken");
             """,
             styles,
         ),
-        p("Indexing with square brackets can panic if the index is out of range. <font face=\"Courier\">get</font> returns <font face=\"Courier\">Option&lt;&amp;T&gt;</font>, which forces you to handle missing values.", styles),
+        p("Indexing with square brackets can panic if the index is out of range. <font face=\"Courier\">get</font> returns <font face=\"Courier\">Option&lt;&#38;T&gt;</font>, which forces you to handle missing values.", styles),
         code(
             """
 let values = vec![4, 8, 15];
@@ -181,7 +181,7 @@ let second = Student {
         ),
         p("4. Methods and associated functions", styles, "DarkHeading"),
         p(
-            "Methods live in an <font face=\"Courier\">impl</font> block. A method with <font face=\"Courier\">&amp;self</font> reads the value, <font face=\"Courier\">&amp;mut self</font> changes it, and <font face=\"Courier\">self</font> takes ownership. Associated functions do not take <font face=\"Courier\">self</font>; they are often used as constructors such as <font face=\"Courier\">new</font>.",
+            "Methods live in an <font face=\"Courier\">impl</font> block. A method with <font face=\"Courier\">&#38;self</font> reads the value, <font face=\"Courier\">&#38;mut self</font> changes it, and <font face=\"Courier\">self</font> takes ownership. Associated functions do not take <font face=\"Courier\">self</font>; they are often used as constructors such as <font face=\"Courier\">new</font>.",
             styles,
         ),
         code(
@@ -268,7 +268,7 @@ if let Some(value) = last {
                 "Write a loop that prints every value in <font face=\"Courier\">Vec&lt;i32&gt;</font> without taking ownership of the vector.",
                 "Define a <font face=\"Courier\">Book</font> struct with <font face=\"Courier\">title: String</font> and <font face=\"Courier\">pages: u32</font>, then instantiate one value.",
                 "Write a constructor-style associated function <font face=\"Courier\">Book::new</font> that returns <font face=\"Courier\">Self</font>.",
-                "Explain the difference between a method taking <font face=\"Courier\">&amp;self</font> and one taking <font face=\"Courier\">&amp;mut self</font>.",
+                "Explain the difference between a method taking <font face=\"Courier\">&#38;self</font> and one taking <font face=\"Courier\">&#38;mut self</font>.",
                 "Define an enum <font face=\"Courier\">TrafficLight</font> with three variants, then write a <font face=\"Courier\">match</font> that prints a message for each.",
                 "Use <font face=\"Courier\">match</font> to handle <font face=\"Courier\">Option&lt;i32&gt;</font>, printing the number for <font face=\"Courier\">Some</font> and <font face=\"Courier\">missing</font> for <font face=\"Courier\">None</font>.",
                 "Rewrite the previous answer with <font face=\"Courier\">if let</font> for the <font face=\"Courier\">Some</font> case and <font face=\"Courier\">else</font> for everything else.",
@@ -281,14 +281,14 @@ if let Some(value) = last {
         p("Use this after attempting the questions. Good answers should show ownership-aware collection use and exhaustive pattern handling.", styles, "SourceText"),
         numbered(
             [
-                "Use <font face=\"Courier\">&amp;str</font>. A string literal passes directly, and a <font face=\"Courier\">String</font> is passed as a borrow, for example <font face=\"Courier\">f(\"hi\")</font> and <font face=\"Courier\">f(&amp;name)</font>.",
+                "Use <font face=\"Courier\">&#38;str</font>. A string literal passes directly, and a <font face=\"Courier\">String</font> is passed as a borrow, for example <font face=\"Courier\">f(\"hi\")</font> and <font face=\"Courier\">f(&#38;name)</font>.",
                 "Use <font face=\"Courier\">text.push('!');</font> and <font face=\"Courier\">text.push_str(\" there\");</font>.",
                 "Expected pattern: <font face=\"Courier\">let mut v = Vec::new(); v.push(3); v.push(7); let last = v.pop();</font>. The removed value has type <font face=\"Courier\">Option&lt;i32&gt;</font>.",
                 "<font face=\"Courier\">v[10]</font> panics if index 10 does not exist. <font face=\"Courier\">v.get(10)</font> returns <font face=\"Courier\">None</font>, so the missing case can be handled.",
-                "Expected pattern: <font face=\"Courier\">for value in &amp;v { println!(\"{value}\"); }</font>. Borrowing keeps the vector usable after the loop.",
+                "Expected pattern: <font face=\"Courier\">for value in &#38;v { println!(\"{value}\"); }</font>. Borrowing keeps the vector usable after the loop.",
                 "A valid answer defines <font face=\"Courier\">struct Book { title: String, pages: u32 }</font> and creates <font face=\"Courier\">Book { title: String::from(\"...\"), pages: ... }</font>.",
                 "Expected pattern: <font face=\"Courier\">impl Book { fn new(title: String, pages: u32) -&gt; Self { Self { title, pages } } }</font>.",
-                "<font face=\"Courier\">&amp;self</font> borrows immutably and can read fields. <font face=\"Courier\">&amp;mut self</font> borrows mutably and can change fields.",
+                "<font face=\"Courier\">&#38;self</font> borrows immutably and can read fields. <font face=\"Courier\">&#38;mut self</font> borrows mutably and can change fields.",
                 "A valid enum has variants such as <font face=\"Courier\">Red</font>, <font face=\"Courier\">Amber</font>, and <font face=\"Courier\">Green</font>. A correct <font face=\"Courier\">match</font> handles all three variants.",
                 "Expected pattern: <font face=\"Courier\">match x { Some(n) =&gt; println!(\"{n}\"), None =&gt; println!(\"missing\") }</font>.",
                 "Expected pattern: <font face=\"Courier\">if let Some(n) = x { println!(\"{n}\"); } else { println!(\"missing\"); }</font>.",
