@@ -49,7 +49,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | A | Classes and structs: declarations, struct vs class, access specifiers, constructors, destructors, parameterised/default/copy constructors, member functions, encapsulation, `this`. | No |
 | A | Memory, pointers, and references: `new`/`delete`, constructors/destructors, `nullptr`, references, pass-by-reference, `const &`, pointers to class members. | No |
 | A | Inheritance: public/protected/private inheritance, base vs derived access, constructor/destructor order, interface design. | No |
-| R | Operator overloading: overloadable vs non-overloadable operators, member vs friend functions, `[]`, `()`, `<<`, least-surprise design. | No |
+| R | Operator overloading: overloadable vs non-overloadable operators, member vs friend functions, `[]`, `()`, `<<`, least-surprise design. | Yes: [cpp-operator-overloading-study-pack.pdf](topicsheets/cpp-operator-overloading-study-pack.pdf) |
 | R | Templates and STL: macros vs templates, function templates, class templates, type safety, STL containers including `stack` and `vector`, iterators, `auto` with iterators. | Yes: [cpp-templates-stl-study-pack.pdf](topicsheets/cpp-templates-stl-study-pack.pdf) |
 | A | Error handling and lambdas: `try`/`catch`/`throw`, standard exceptions, good exception practice, lambda syntax, capture by value/reference. | No |
 | A | Access control details in inheritance: `private`, `protected`, `public`. | No |
@@ -76,7 +76,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | R | Collections and data modelling: `Vec<T>`, strings, structs, methods, associated functions, enums, `Option<T>`, `match`, `if let`. | Yes: [rust-collections-data-modelling-study-pack.pdf](topicsheets/rust-collections-data-modelling-study-pack.pdf) |
 | R | Error handling and file I/O: `panic!`, `Result<T, E>`, explicit error handling, `?`, parsing, file reading, iterating over lines. | Yes: [rust-error-handling-file-io-study-pack.pdf](topicsheets/rust-error-handling-file-io-study-pack.pdf) |
 | A | Project structure, testing, and `HashMap`: `main.rs` vs `lib.rs`, `pub`, modules, unit tests, integration tests, assertions, `HashMap`, `entry` API. | No |
-| R | Generics and traits: generic functions/structs/methods, trait bounds, `where` clauses, default trait methods, derivable traits. | No |
+| R | Generics and traits: generic functions/structs/methods, trait bounds, `where` clauses, default trait methods, derivable traits. | Yes: [rust-generics-traits-study-pack.pdf](topicsheets/rust-generics-traits-study-pack.pdf) |
 | R | Closures, iterators, and lifetimes: closure syntax/capture, `Fn`/`FnMut`/`FnOnce`, iterator pipelines, `map`, `filter`, `enumerate`, `zip`, `take`, `collect`, custom iterators, lifetime annotations, elision rules. | No |
 | R | Rust move vs copy, and why iterator-based loops avoid C indexing errors. | Related: [rust-ownership-borrowing-study-pack.pdf](topicsheets/rust-ownership-borrowing-study-pack.pdf) |
 | R | Rust `?` as explicit error propagation without exceptions. | Yes: [rust-error-handling-file-io-study-pack.pdf](topicsheets/rust-error-handling-file-io-study-pack.pdf) |

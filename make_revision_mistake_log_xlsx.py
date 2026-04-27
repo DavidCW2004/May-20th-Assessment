@@ -52,6 +52,14 @@ TRACKER_ROWS = [
     ["C Function Pointers and Callbacks", "7", "Integer comparator steps", "Fill in the body of `int compare_ints(const void *p, const void *q)` so it works correctly with `qsort` on an integer array.", ""],
     ["C Function Pointers and Callbacks", "9", "`const void *` comparator parameters", "`qsort` rejects `int compare_ints(int *a, int *b)`. Fix the signature and explain why the fixed version matches `qsort`.", ""],
     ["C Function Pointers and Callbacks", "10", "Pointer arithmetic with `char *`", "In generic array code with `void *array` and `size_t width`, write the expression for the address of element `i` after converting the base pointer to `char *`.", ""],
+    ["C++ Operator Overloading", "2", "`MyInteger + int` member overload", "Given `class MyInteger { int i; public: MyInteger(int value) : i(value) {} /* missing */ };`, write the member overload that makes `MyInteger a(4); int x = a + 6;` set `x` to 10.", ""],
+    ["C++ Operator Overloading", "5", "Legal and sensible overloads", "For `Point`, judge these attempted meanings: `Point + Point`, `int + int`, `sizeof point`, and `point.x`. Mark each as legal or illegal to overload, then choose whether the legal one is sensible.", ""],
+    ["C++ Operator Overloading", "6", "`operator[]` reference return", "Complete an array class subscript operator so `arr[2] = 99;` changes the stored element. The body should return the element itself, not its address.", ""],
+    ["Rust Generics and Traits", "3", "Generic `Point` method", "Given a generic `Point` with fields `x` and `y`, complete the `impl` block so method `x` borrows the object and returns a borrow of the `x` field.", ""],
+    ["Rust Generics and Traits", "6", "Borrowed generic `Area` parameter", "Fix a broken free function that tries to use `self.area()` outside an `impl` block, so it prints the area of any borrowed shape that implements `Area`.", ""],
+    ["Rust Generics and Traits", "7", "`show_larger` display bound", "Fix the signature of `show_larger` when its body compares two values and then prints the winning value with normal braces.", ""],
+    ["Rust Generics and Traits", "9", "`derive` attribute syntax", "Repair the derive line for a custom struct used with `assert_eq!` and debug printing: `#derive Debug, PartialEq`.", ""],
+    ["Rust Generics and Traits", "10", "`HashMap` key derives", "A custom `Team` value is used as a key in a `HashMap`. Add the derives needed so insertion and lookup by key compile.", ""],
 ]
 
 RULES_COLUMNS = ["Topic sheet", "Question number", "Topic", "Correct rule"]
@@ -96,6 +104,14 @@ RULES_ROWS = [
     ["C Function Pointers and Callbacks", "7", "Integer comparator steps", "An integer comparator receives two `const void *` pointers, treats them as `const int *`, compares the pointed-to integer values, and returns negative, zero, or positive."],
     ["C Function Pointers and Callbacks", "9", "`const void *` comparator parameters", "`qsort` is generic, so the comparator receives pointers to elements of unknown type. `const` means those pointed-to elements are read-only inside the comparator."],
     ["C Function Pointers and Callbacks", "10", "Pointer arithmetic with `char *`", "Pointer arithmetic moves by the size of the pointed-to type. Generic array code uses `char *` because one step is one byte, so byte offsets such as `i * width` can locate element `i`."],
+    ["C++ Operator Overloading", "2", "`MyInteger + int` member overload", "Use a member overload that takes an integer value and returns `i + value`. This handles `a + 6` because the left operand is the `MyInteger` object."],
+    ["C++ Operator Overloading", "5", "Legal and sensible overloads", "`Point + Point` can be overloaded because a class type is involved, if point addition is meaningful. `int + int` cannot be changed, and `sizeof` and `.` cannot be overloaded."],
+    ["C++ Operator Overloading", "6", "`operator[]` reference return", "The subscript operator should return a reference to the stored element. Return `data[index]`, not the address of `data[index]`, so assignment through `arr[2]` updates the array element."],
+    ["Rust Generics and Traits", "3", "Generic `Point` method", "The `impl` block must introduce the generic type parameter, and the method should borrow `self` and return a borrow of `self.x`."],
+    ["Rust Generics and Traits", "6", "Borrowed generic `Area` parameter", "This should be a free function with a borrowed parameter such as `shape`, not a method using `self`. The generic type must be constrained by the `Area` trait before calling `shape.area()`."],
+    ["Rust Generics and Traits", "7", "`show_larger` display bound", "Comparison needs `PartialOrd`, and printing with normal braces needs `std::fmt::Display`; the generic bound needs both."],
+    ["Rust Generics and Traits", "9", "`derive` attribute syntax", "The derive attribute needs square brackets and parentheses: `#[derive(Debug, PartialEq)]`."],
+    ["Rust Generics and Traits", "10", "`HashMap` key derives", "A `HashMap` key needs hashing and reliable equality. Usual derives are `Debug`, `Clone`, `PartialEq`, `Eq`, and `Hash`; the key requirements are `PartialEq`, `Eq`, and `Hash`."],
 ]
 
 
