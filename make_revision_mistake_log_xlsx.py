@@ -60,6 +60,9 @@ TRACKER_ROWS = [
     ["Rust Generics and Traits", "7", "`show_larger` display bound", "Fix the signature of `show_larger` when its body compares two values and then prints the winning value with normal braces.", ""],
     ["Rust Generics and Traits", "9", "`derive` attribute syntax", "Repair the derive line for a custom struct used with `assert_eq!` and debug printing: `#derive Debug, PartialEq`.", ""],
     ["Rust Generics and Traits", "10", "`HashMap` key derives", "A custom `Team` value is used as a key in a `HashMap`. Add the derives needed so insertion and lookup by key compile.", ""],
+    ["C++ Virtual Functions and Dynamic Binding", "3", "Virtual call through base pointer", "Given virtual `read`, `TemperatureSensor temp(\"Lab\", 21.5);` and a `Sensor *s` pointing at `temp`, work out which `read` function runs and what value is returned.", ""],
+    ["C++ Virtual Functions and Dynamic Binding", "7", "Virtual destructor in polymorphic base", "Complete the destructor declaration in a polymorphic base class: `_____ ~Sensor() = default;`.", ""],
+    ["C++ Virtual Functions and Dynamic Binding", "8", "Constructor string reference parameter", "Complete the `TemperatureSensor` constructor parameter for `name` as a const string reference, then write the initializer list that calls `Sensor(id, name)` and stores `celsius`.", ""],
 ]
 
 RULES_COLUMNS = ["Topic sheet", "Question number", "Topic", "Correct rule"]
@@ -112,6 +115,9 @@ RULES_ROWS = [
     ["Rust Generics and Traits", "7", "`show_larger` display bound", "Comparison needs `PartialOrd`, and printing with normal braces needs `std::fmt::Display`; the generic bound needs both."],
     ["Rust Generics and Traits", "9", "`derive` attribute syntax", "The derive attribute needs square brackets and parentheses: `#[derive(Debug, PartialEq)]`."],
     ["Rust Generics and Traits", "10", "`HashMap` key derives", "A `HashMap` key needs hashing and reliable equality. Usual derives are `Debug`, `Clone`, `PartialEq`, `Eq`, and `Hash`; the key requirements are `PartialEq`, `Eq`, and `Hash`."],
+    ["C++ Virtual Functions and Dynamic Binding", "3", "Virtual call through base pointer", "Because `read` is virtual, the call through `Sensor *` uses the actual object type. It runs `TemperatureSensor::read` and returns `21.5`."],
+    ["C++ Virtual Functions and Dynamic Binding", "7", "Virtual destructor in polymorphic base", "A polymorphic base class should declare `virtual ~Sensor() = default;` so destroying through a base pointer cleans up the derived object correctly."],
+    ["C++ Virtual Functions and Dynamic Binding", "8", "Constructor string reference parameter", "Use a const string reference parameter for `name`, then initialize the base with `Sensor(id, name)` and the member with `celsius(celsius)`."],
 ]
 
 

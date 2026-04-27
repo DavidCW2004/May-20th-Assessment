@@ -60,7 +60,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | G | Splitting classes across header and source files. | No |
 | R | Reference parameters in practice, such as swapping values by reference. | Related: [cpp-templates-stl-study-pack.pdf](topicsheets/cpp-templates-stl-study-pack.pdf) |
 | R | Constructor/destructor tracing to understand object lifetime. | No |
-| R | Virtual functions and dynamic binding through base-class pointers. | No |
+| R | Virtual functions and dynamic binding through base-class pointers. | Yes: [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
 | R | Member initialiser lists for constructors. | No |
 | A | Multiple inheritance. | No |
 | R | Smart-pointer practice with `std::unique_ptr`. | No |
