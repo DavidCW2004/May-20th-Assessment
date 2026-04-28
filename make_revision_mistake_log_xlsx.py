@@ -63,61 +63,11 @@ TRACKER_ROWS = [
     ["C++ Virtual Functions and Dynamic Binding", "3", "Virtual call through base pointer", "Given virtual `read`, `TemperatureSensor temp(\"Lab\", 21.5);` and a `Sensor *s` pointing at `temp`, work out which `read` function runs and what value is returned.", ""],
     ["C++ Virtual Functions and Dynamic Binding", "7", "Virtual destructor in polymorphic base", "Complete the destructor declaration in a polymorphic base class: `_____ ~Sensor() = default;`.", ""],
     ["C++ Virtual Functions and Dynamic Binding", "8", "Constructor string reference parameter", "Complete the `TemperatureSensor` constructor parameter for `name` as a const string reference, then write the initializer list that calls `Sensor(id, name)` and stores `celsius`.", ""],
-]
-
-RULES_COLUMNS = ["Topic sheet", "Question number", "Topic", "Correct rule"]
-RULES_ROWS = [
-    ["C Pointers and Memory", "1", "Pointer basics", "The pointer update changes `x`, so `x` and `y` are both 7. The address expressions are the address of `x` and `p`; the integer values are `x` and the value reached through `p`."],
-    ["C Pointers and Memory", "2", "`sizeof` vs `strlen`", "`sizeof s` is 20 and `strlen(s)` is 5, so 14 more visible characters fit safely because one byte must remain for `\\0`."],
-    ["C Pointers and Memory", "3", "Out-of-bounds access", "The loop writes `a[5]`, which is past the end. Only use index values 0 to 4; possible symptoms include corrupted memory, wrong values, or a crash."],
-    ["C Pointers and Memory", "4", "`malloc` safety check", "Use `if (a == NULL) { /* handle failure before using a */ }`; no code should write through `a` unless the allocation succeeded."],
-    ["C Pointers and Memory", "5", "`strcpy` into `char *`", "`char *p` has no storage. Use an array such as `char p[6]; strcpy(p, \"Hello\");` or allocate enough bytes with `malloc` and free them later."],
-    ["C Pointers and Memory", "6", "Dynamic 2D array", "On row allocation failure, free only rows already allocated: loop from row 0 up to row r - 1, call `free(X[i])` for each, then `free(X)`."],
-    ["Rust Ownership and Borrowing", "7", "Ownership rules", "`s1` is moved into `s2`, so printing `s1` is rejected. Fix by cloning with `let s2 = s1.clone();` or by borrowing instead of moving."],
-    ["Rust Ownership and Borrowing", "8", "Move semantics", "Change the function to borrow a string slice instead of taking ownership, then call it with a borrow of `name`. A borrow does not move `name`, so it can still be printed."],
-    ["Rust Ownership and Borrowing", "9", "Borrowed string-slice parameters and iteration", "Use `text.chars()` to iterate over characters. In the loop, check whether each character is `a` and count matches. Byte iteration is not the same as character iteration."],
-    ["Rust Ownership and Borrowing", "10", "Modifying a `String`", "Use `text.push('!');` for one character and `text.push_str(\" there\");` for a string slice."],
-    ["Rust Ownership and Borrowing", "11", "`String` vs borrowed string slices", "Use a borrowed string-slice parameter for read-only text. A string literal can be passed directly, and a `String` value can be passed by borrowing it."],
-    ["C Files and Streams", "12", "Text vs binary streams", "Use binary mode such as `fopen(path, \"rb\")`. Text mode can translate characters such as newlines, which changes the bytes you read."],
-    ["C Files and Streams", "13", "`scanf` basics", "If the input is `abc`, `scanf` returns 0 and `k` is not assigned a new integer. Check `rc == 1` before trusting `k`."],
-    ["C Files and Streams", "14", "Buffering and flushing", "Call `fflush(stdout);` after the prompt/progress message if it must appear before later work or before waiting for input."],
-    ["C Files and Streams", "15", "`ferror` vs `feof`", "After the loop, `if (ferror(fp)) { ... }` detects a real read error. If not, the `EOF` was just normal end-of-file."],
-    ["C Files and Streams", "16", "`rewind` and `fseek`", "Use `rewind(fp);` and then `fseek(fp, 20, SEEK_SET);`; `SEEK_SET` makes the offset relative to the start of the file."],
-    ["C Files and Streams", "17", "Open / write / flush / close", "Check `fp == NULL` immediately after `fopen`; only call `fprintf` on a valid `FILE *`, and call `fclose(fp)` before returning."],
-    ["C Preprocessor, Macros, and Headers", "2", "`#include`", "`#include \"stack.h\"` makes the preprocessor find the named header and copy its contents into `main.c` at that point."],
-    ["C Preprocessor, Macros, and Headers", "7", "Macro vs function", "Macros perform textual substitution and can evaluate arguments multiple times, so `i++` or `j++` may run more than once. Function arguments are evaluated before the function call."],
-    ["C Preprocessor, Macros, and Headers", "8", "Stringification", "Use `#` before the macro parameter, for example `#define REPORT_INT(X) printf(\"%s = %d\\n\", #X, X)`."],
-    ["C Preprocessor, Macros, and Headers", "9", "Include guards", "A complete guard is `#ifndef STACK_H`, `#define STACK_H`, header contents, then `#endif`."],
-    ["C++ Templates and STL", "2", "Templates vs macros", "Macros are expanded as text before compilation. If two `.cpp` files expand the macro into the same normal function definition, the linker sees two definitions and reports an error."],
-    ["C++ Templates and STL", "6", "Class template member definitions", "The completed header is `template<typename T> T Stack<T>::pop()`. The `Stack<T>` part is needed because `pop` belongs to the class template instantiated with `T`."],
-    ["C++ Templates and STL", "7", "Template definitions in headers", "A template body must be visible wherever the compiler creates a real version. If another file calls `max_value(2, 3)`, it needs the function body in the header, not only the prototype."],
-    ["C++ Templates and STL", "10", "Vector iterators", "Use `for (auto it = v.begin(); it != v.end(); ++it) { std::cout << *it; }`. The iterator points at each element, and `*it` reads the current value."],
-    ["Rust Error Handling and File I/O", "6", "`?` and return types", "`?` can return the parse error early, so the function must return a compatible `Result`, such as a result containing `i32` on success and `std::num::ParseIntError` on failure, then return `Ok(n)`."],
-    ["Rust Error Handling and File I/O", "8", "Mapping parse errors", "Use `let quantity = parts[1].trim().parse::<u32>().map_err(|_| \"bad quantity\".to_string())?;` so a parse failure becomes the requested `Err` message."],
-    ["Rust Error Handling and File I/O", "9", "`unwrap` in library code", "`unwrap()` panics and makes the failure unrecoverable for the caller. Return `Result` instead so the caller can decide how to handle the error."],
-    ["Rust Error Handling and File I/O", "10", "`main` returning `Result`", "Use `fn main() -> Result<(), Box<dyn std::error::Error>>` so file-read and parse errors can be propagated with `?`. Finish successful execution with `Ok(())`."],
-    ["Rust Collections and Data Modelling", "1", "Borrowed string-slice parameter calls", "A function taking a borrowed string slice can be called with a string literal directly. A `String` value must be borrowed, so call with the string literal first and then call again by borrowing `text`."],
-    ["Rust Collections and Data Modelling", "2", "Modifying a `String`", "Use `text.push('!')` for a single character and `text.push_str(\" there\")` for a string slice. A one-line `text.push_str(\"! there\")` also gives the same final string, but it does not demonstrate both methods."],
-    ["Rust Collections and Data Modelling", "4", "`Vec::get` missing case", "`v[10]` panics if index 10 is missing. `v.get(10)` returns an `Option` containing a possible borrowed value, so the caller can handle `Some(value)` and `None` with `match` or `if let`."],
-    ["Rust Collections and Data Modelling", "7", "`String` field construction", "The field type is `String`, so a string literal must be converted with `String::from(\"Rust\")` or `\"Rust\".to_string()`. Parentheses around a literal do not change it from a borrowed string slice to `String`."],
-    ["Rust Collections and Data Modelling", "8", "Immutable vs mutable self borrows", "An immutable self borrow is for reading. A mutable self borrow is required when the method changes fields such as `self.value += 1`."],
-    ["Rust Collections and Data Modelling", "12", "`Option<T>` and null safety", "Returning an `Option` containing a borrowed value makes absence explicit as `None`. The caller must handle `Some` and `None`, so there is no chance of accidentally dereferencing a null pointer before checking whether a value exists."],
-    ["C Function Pointers and Callbacks", "5", "Callback received by `apply`", "The callback is `Plus`. `apply` receives `Plus` through its function pointer parameter, then calls that pointer to decide what operation to perform."],
-    ["C Function Pointers and Callbacks", "6", "`qsort` arguments", "`qsort` receives the base pointer, number of elements, size of each element in bytes, and comparator callback. For `int values[] = {3, 1, 2};`, use `values`, 3, `sizeof values[0]`, and `compare_ints`."],
-    ["C Function Pointers and Callbacks", "7", "Integer comparator steps", "An integer comparator receives two `const void *` pointers, treats them as `const int *`, compares the pointed-to integer values, and returns negative, zero, or positive."],
-    ["C Function Pointers and Callbacks", "9", "`const void *` comparator parameters", "`qsort` is generic, so the comparator receives pointers to elements of unknown type. `const` means those pointed-to elements are read-only inside the comparator."],
-    ["C Function Pointers and Callbacks", "10", "Pointer arithmetic with `char *`", "Pointer arithmetic moves by the size of the pointed-to type. Generic array code uses `char *` because one step is one byte, so byte offsets such as `i * width` can locate element `i`."],
-    ["C++ Operator Overloading", "2", "`MyInteger + int` member overload", "Use a member overload that takes an integer value and returns `i + value`. This handles `a + 6` because the left operand is the `MyInteger` object."],
-    ["C++ Operator Overloading", "5", "Legal and sensible overloads", "`Point + Point` can be overloaded because a class type is involved, if point addition is meaningful. `int + int` cannot be changed, and `sizeof` and `.` cannot be overloaded."],
-    ["C++ Operator Overloading", "6", "`operator[]` reference return", "The subscript operator should return a reference to the stored element. Return `data[index]`, not the address of `data[index]`, so assignment through `arr[2]` updates the array element."],
-    ["Rust Generics and Traits", "3", "Generic `Point` method", "The `impl` block must introduce the generic type parameter, and the method should borrow `self` and return a borrow of `self.x`."],
-    ["Rust Generics and Traits", "6", "Borrowed generic `Area` parameter", "This should be a free function with a borrowed parameter such as `shape`, not a method using `self`. The generic type must be constrained by the `Area` trait before calling `shape.area()`."],
-    ["Rust Generics and Traits", "7", "`show_larger` display bound", "Comparison needs `PartialOrd`, and printing with normal braces needs `std::fmt::Display`; the generic bound needs both."],
-    ["Rust Generics and Traits", "9", "`derive` attribute syntax", "The derive attribute needs square brackets and parentheses: `#[derive(Debug, PartialEq)]`."],
-    ["Rust Generics and Traits", "10", "`HashMap` key derives", "A `HashMap` key needs hashing and reliable equality. Usual derives are `Debug`, `Clone`, `PartialEq`, `Eq`, and `Hash`; the key requirements are `PartialEq`, `Eq`, and `Hash`."],
-    ["C++ Virtual Functions and Dynamic Binding", "3", "Virtual call through base pointer", "Because `read` is virtual, the call through `Sensor *` uses the actual object type. It runs `TemperatureSensor::read` and returns `21.5`."],
-    ["C++ Virtual Functions and Dynamic Binding", "7", "Virtual destructor in polymorphic base", "A polymorphic base class should declare `virtual ~Sensor() = default;` so destroying through a base pointer cleans up the derived object correctly."],
-    ["C++ Virtual Functions and Dynamic Binding", "8", "Constructor string reference parameter", "Use a const string reference parameter for `name`, then initialize the base with `Sensor(id, name)` and the member with `celsius(celsius)`."],
+    ["C++ Smart Pointer Practice with std::unique_ptr", "2", "Base-type smart pointer declaration", "A factory line must store a newly created `TemperatureSensor` in a variable that can later hold any `Sensor` subtype. Write the full smart-pointer declaration and construction call.", ""],
+    ["C++ Smart Pointer Practice with std::unique_ptr", "4", "Returning unique ownership", "Write the return type and body for `make_sensor` so it creates a `TemperatureSensor` and gives ownership to the caller through the base sensor interface.", ""],
+    ["C++ Smart Pointer Practice with std::unique_ptr", "7", "Polymorphic owned object", "Trace `std::unique_ptr<Sensor> sensor = std::make_unique<TemperatureSensor>(...); sensor->read();` and identify the pointer type, the owned heap object type, and the function that runs.", ""],
+    ["C Types and Conversions", "4", "Floating-point to `short` conversion", "A program stores `123456.789` in a `short` and then prints the result. Explain what kind of conversion happens and what information can be lost.", ""],
+    ["C Types and Conversions", "5", "`typedef` order", "Write the typedef that lets `Temperature today = 8.0f;` compile, then explain which name is the existing type and which name is the new alias.", ""],
 ]
 
 
@@ -370,7 +320,6 @@ def styles_xml() -> str:
 def build_xlsx() -> None:
     tracker_rows = tracker_rows_with_existing_completed_marks(OUTPUT)
     tracker_ref = f"A1:{col_name(len(TRACKER_COLUMNS))}{len(tracker_rows) + 1}"
-    rules_ref = f"A1:{col_name(len(RULES_COLUMNS))}{len(RULES_ROWS) + 1}"
     now = datetime.now(timezone.utc).isoformat()
 
     files = {
@@ -380,9 +329,7 @@ def build_xlsx() -> None:
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
   <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
-  <Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
   <Override PartName="/xl/tables/table1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>
-  <Override PartName="/xl/tables/table2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>
   <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
   <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
   <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
@@ -397,25 +344,17 @@ def build_xlsx() -> None:
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <sheets>
     <sheet name="Tracker" sheetId="1" r:id="rId1"/>
-    <sheet name="Correct Rules" sheetId="2" r:id="rId2"/>
   </sheets>
 </workbook>''',
         "xl/_rels/workbook.xml.rels": '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
-  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>
   <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
 </Relationships>''',
         "xl/worksheets/sheet1.xml": sheet_xml(tracker_rows, TRACKER_COLUMNS, tracker_ref, "rId1", [28, 14, 24, 68, 14]),
-        "xl/worksheets/sheet2.xml": sheet_xml(
-            RULES_ROWS, RULES_COLUMNS, rules_ref, "rId1", [28, 14, 28, 95], min_body_height=72
-        ),
         "xl/worksheets/_rels/sheet1.xml.rels": '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/table" Target="../tables/table1.xml"/></Relationships>''',
-        "xl/worksheets/_rels/sheet2.xml.rels": '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/table" Target="../tables/table2.xml"/></Relationships>''',
         "xl/tables/table1.xml": table_xml(1, "RevisionMistakeTracker", tracker_ref, TRACKER_COLUMNS),
-        "xl/tables/table2.xml": table_xml(2, "RevisionCorrectRules", rules_ref, RULES_COLUMNS),
         "xl/styles.xml": styles_xml(),
         "docProps/app.xml": '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>Codex</Application></Properties>''',
