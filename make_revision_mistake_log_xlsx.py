@@ -9,6 +9,7 @@ from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "revision-mistake-log.xlsx"
+BACKUP_DIR = ROOT / "backups"
 
 TRACKER_COLUMNS = ["Topic sheet", "Question number", "Topic", "Redo prompt", "Completed"]
 TRACKER_ROWS = [
@@ -68,6 +69,11 @@ TRACKER_ROWS = [
     ["C++ Smart Pointer Practice with std::unique_ptr", "7", "Polymorphic owned object", "Trace `std::unique_ptr<Sensor> sensor = std::make_unique<TemperatureSensor>(...); sensor->read();` and identify the pointer type, the owned heap object type, and the function that runs.", ""],
     ["C Types and Conversions", "4", "Floating-point to `short` conversion", "A program stores `123456.789` in a `short` and then prints the result. Explain what kind of conversion happens and what information can be lost.", ""],
     ["C Types and Conversions", "5", "`typedef` order", "Write the typedef that lets `Temperature today = 8.0f;` compile, then explain which name is the existing type and which name is the new alias.", ""],
+    ["C Structures and Dynamic Data Structures", "7", "Front insertion pointer order", "Given `root` points to `C -> Q -> NULL` and `new_node` points to `A -> NULL`, write the assignments that make the list `A -> C -> Q -> NULL` without losing any nodes.", ""],
+    ["C Structures and Dynamic Data Structures", "9", "Linked-list stack pop", "Given `Node *root` points at `A -> C -> Q -> NULL`, complete `char pop(Node **root_ptr)` so it returns `A`, updates the caller's root to `C`, and frees the removed node.", ""],
+    ["C++ Moving from C", "1", "Compile and link flow", "For a program split across `main.cpp` and `stack.cpp`, write the separate compile commands that create object files, then write the link command that creates the executable.", ""],
+    ["C++ Moving from C", "3", "Stream input operator", "Write the C++ stream line that reads an integer from standard input into `count`, then explain why the opposite arrow direction would be wrong.", ""],
+    ["C++ Moving from C", "7", "`auto` and static typing", "Given `auto x = 10; x = \"hello\";`, explain the compile error and what `auto` did, without describing it as dynamic typing.", ""],
 ]
 
 
@@ -321,6 +327,12 @@ def build_xlsx() -> None:
     tracker_rows = tracker_rows_with_existing_completed_marks(OUTPUT)
     tracker_ref = f"A1:{col_name(len(TRACKER_COLUMNS))}{len(tracker_rows) + 1}"
     now = datetime.now(timezone.utc).isoformat()
+
+    if OUTPUT.exists():
+        BACKUP_DIR.mkdir(exist_ok=True)
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        backup = BACKUP_DIR / f"{OUTPUT.stem}-{stamp}{OUTPUT.suffix}"
+        backup.write_bytes(OUTPUT.read_bytes())
 
     files = {
         "[Content_Types].xml": '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>

@@ -1242,3 +1242,160 @@ Temperature today = 8.0f;
 ```
 
 `float` is the existing type. `Temperature` is the new alias. Writing the names the other way around would try to create an alias for a type name that does not exist yet.
+
+## C Structures and Dynamic Data Structures
+
+### Q58 - Front insertion pointer order
+
+**Question:** Given `root` points to `C -> Q -> NULL` and `new_node` points to `A -> NULL`, write the assignments that make the list `A -> C -> Q -> NULL` without losing any nodes.
+
+For front insertion, the safe order is:
+
+```c
+new_node->next = root;
+root = new_node;
+```
+
+Start:
+
+```text
+root -> C -> Q -> NULL
+new_node -> A -> NULL
+```
+
+First:
+
+```c
+new_node->next = root;
+```
+
+Now the new node points at the old list:
+
+```text
+new_node -> A -> C -> Q -> NULL
+root ------------^
+```
+
+Then:
+
+```c
+root = new_node;
+```
+
+Now the list starts at the new node:
+
+```text
+root -> A -> C -> Q -> NULL
+```
+
+If you assign `root = new_node` first, you lose the only pointer to the old list unless you saved it somewhere else.
+
+### Q59 - Linked-list stack pop
+
+**Question:** Given `Node *root` points at `A -> C -> Q -> NULL`, complete `char pop(Node **root_ptr)` so it returns `A`, updates the caller's root to `C`, and frees the removed node.
+
+The caller has a `Node *root`, but `pop` must change that pointer. That is why the function receives the address of the root pointer:
+
+```c
+char popped = pop(&root);
+```
+
+Inside `pop`, use a clearer parameter name such as `root_ptr`:
+
+```c
+char pop(Node **root_ptr) {
+    if (*root_ptr == NULL) {
+        return '\0';
+    }
+
+    Node *old = *root_ptr;
+    char data = old->data;
+
+    *root_ptr = old->next;
+
+    free(old);
+    return data;
+}
+```
+
+The roles are:
+
+- `root_ptr` is the address of the caller's root pointer.
+- `*root_ptr` is the actual current top node pointer.
+- `old` is the node being removed.
+- `old->next` is the new top of the stack.
+
+The data must be saved before freeing the node. The caller's root must be updated before the function returns, otherwise it would still point at freed memory.
+
+## C++ Moving from C
+
+### Q60 - Compile and link flow
+
+**Question:** For a program split across `main.cpp` and `stack.cpp`, write the separate compile commands that create object files, then write the link command that creates the executable.
+
+The compile step turns each source file into an object file:
+
+```bash
+g++ -std=c++17 -c main.cpp -o main.o
+g++ -std=c++17 -c stack.cpp -o stack.o
+```
+
+The `-c` flag means compile only, do not link. That is why these commands produce `.o` object files.
+
+The link step combines object files into the final executable:
+
+```bash
+g++ main.o stack.o -o program
+```
+
+The output is `program`, not `program.o`, because it is the executable. An `.o` file is an intermediate object file, not the final runnable program.
+
+### Q61 - Stream input operator
+
+**Question:** Write the C++ stream line that reads an integer from standard input into `count`, then explain why the opposite arrow direction would be wrong.
+
+Use the extraction operator:
+
+```cpp
+std::cin >> count;
+```
+
+Read it as:
+
+```text
+get input from standard input into count
+```
+
+The direction matters. For output, data flows to `std::cout`:
+
+```cpp
+std::cout << count;
+```
+
+For input, data flows from `std::cin` into the variable:
+
+```cpp
+std::cin >> count;
+```
+
+So `std::cin << count` is the wrong direction for reading.
+
+### Q62 - `auto` and static typing
+
+**Question:** Given `auto x = 10; x = "hello";`, explain the compile error and what `auto` did, without describing it as dynamic typing.
+
+`auto` asks the compiler to deduce the variable's type from the initializer:
+
+```cpp
+auto x = 10;
+```
+
+Here, the initializer is an integer, so `x` is deduced as `int`.
+
+This later assignment fails:
+
+```cpp
+x = "hello";
+```
+
+because `x` is still an `int`. `auto` does not make the variable dynamically typed. It only saves you from writing the type explicitly; the variable still has one fixed compile-time type.

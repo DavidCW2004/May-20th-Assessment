@@ -16,7 +16,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | A | Pointers and memory: addresses, dereferencing, arrays as pointers, arrays of strings, `malloc`, `free`, dangling pointers, double-free, memory leaks, segmentation faults. | Yes: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | R | Functions with pointers: pass by value vs pointer update, arrays as parameters, pointers to pointers, modifying caller state, allocating inside helper functions. | Related: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | R | Function pointers and callbacks, including `qsort`. | Yes: [c-function-pointers-callbacks-study-pack.pdf](topicsheets/c-function-pointers-callbacks-study-pack.pdf) |
-| R | Structures and dynamic data structures: `struct`, `typedef`, member access, linked lists, arrays vs linked lists tradeoffs. | No |
+| R | Structures and dynamic data structures: `struct`, `typedef`, member access, linked lists, arrays vs linked lists tradeoffs. | Yes: [c-structures-dynamic-data-study-pack.pdf](topicsheets/c-structures-dynamic-data-study-pack.pdf) |
 | R | Files and streams: `scanf`, standard streams, text vs binary streams, file modes, file I/O, buffering/flushing, `feof`, `ferror`, `fseek`, `rewind`, `errno`, `strerror`. | Yes: [c-files-streams-study-pack.pdf](topicsheets/c-files-streams-study-pack.pdf) |
 | R | Preprocessor and macros: `#include`, macro expansion, stringification, search paths, macro pitfalls, precedence problems, safe macro design. | Yes: [c-preprocessor-macros-headers-study-pack.pdf](topicsheets/c-preprocessor-macros-headers-study-pack.pdf) |
 | R | Program structure and compilation: separate compilation, headers, APIs, `extern`, `static`, scope/visibility, multiple includes, include guards, simple makefiles and dependencies. | Yes: [c-preprocessor-macros-headers-study-pack.pdf](topicsheets/c-preprocessor-macros-headers-study-pack.pdf) |
@@ -39,13 +39,13 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | R | Pointer exercises: basic pointers, pointers with arrays, tricky pointers, pointer arithmetic. | Yes: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | R | Generic low-level programming with `void *`: type-generic swap, comparison functions, generic merge sort. | Related: [c-function-pointers-callbacks-study-pack.pdf](topicsheets/c-function-pointers-callbacks-study-pack.pdf) |
 | R | Debugging tools for memory bugs: Valgrind and address sanitiser. | No |
-| A | Stack implementation practice using linked structures, `push`/`pop`, recursion for printing, and empty-stack edge cases. | No |
+| A | Stack implementation practice using linked structures, `push`/`pop`, recursion for printing, and empty-stack edge cases. | Related: [c-structures-dynamic-data-study-pack.pdf](topicsheets/c-structures-dynamic-data-study-pack.pdf) |
 
 ## C++
 
 | Status | Topic | Topic sheet created? |
 |---|---|---|
-| R | Moving from C to C++: standards, compile/link flow, `iostream`, streams, `bool`, `std::string`, `using`, `auto`, scope resolution, function/operator overloading, default parameters, pass by reference. | No |
+| R | Moving from C to C++: standards, compile/link flow, `iostream`, streams, `bool`, `std::string`, `using`, `auto`, scope resolution, function/operator overloading, default parameters, pass by reference. | Yes: [cpp-moving-from-c-study-pack.pdf](topicsheets/cpp-moving-from-c-study-pack.pdf) |
 | A | Classes and structs: declarations, struct vs class, access specifiers, constructors, destructors, parameterised/default/copy constructors, member functions, encapsulation, `this`. | Related: [cpp-operator-overloading-study-pack.pdf](topicsheets/cpp-operator-overloading-study-pack.pdf), [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
 | A | Memory, pointers, and references: `new`/`delete`, constructors/destructors, `nullptr`, references, pass-by-reference, `const &`, pointers to class members. | Related: [cpp-smart-pointers-unique-ptr-study-pack.pdf](topicsheets/cpp-smart-pointers-unique-ptr-study-pack.pdf) |
 | A | Inheritance: public/protected/private inheritance, base vs derived access, constructor/destructor order, interface design. | Related: [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
