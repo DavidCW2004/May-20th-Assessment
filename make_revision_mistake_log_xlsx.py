@@ -74,6 +74,8 @@ TRACKER_ROWS = [
     ["C++ Moving from C", "1", "Compile and link flow", "For a program split across `main.cpp` and `stack.cpp`, write the separate compile commands that create object files, then write the link command that creates the executable.", ""],
     ["C++ Moving from C", "3", "Stream input operator", "Write the C++ stream line that reads an integer from standard input into `count`, then explain why the opposite arrow direction would be wrong.", ""],
     ["C++ Moving from C", "7", "`auto` and static typing", "Given `auto x = 10; x = \"hello\";`, explain the compile error and what `auto` did, without describing it as dynamic typing.", ""],
+    ["C Command-line Arguments", "6", "`atoi` invalid input vs zero", "For `int n = atoi(argv[1]);`, compare `argv[1]` values `\"abc\"` and `\"0\"`: state what each returns and why the return value alone cannot prove the input was valid.", ""],
+    ["C Command-line Arguments", "9", "`strtol` no digits consumed", "For `char *end; long n = strtol(text, &end, 10);`, explain what `end == text` means for `text = \"abc\"`, then say what `*end` should be after a clean full-number parse.", ""],
 ]
 
 

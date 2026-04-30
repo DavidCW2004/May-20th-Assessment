@@ -1,6 +1,6 @@
 # Revision Content Notes
 
-- Do not put HTML/XML escaped ampersand entities in human-facing revision text.
+- Do not put HTML/XML escaped ampersand entities in human-facing revision text for xlxs.
 - In spreadsheet content, avoid raw ampersand syntax where a viewer might expose XML escapes; prefer wording such as "borrowed string slice", "borrow `text`", or "address of `k`".
 - In ReportLab paragraph markup, use numeric character entities for required ampersand symbols inside code examples.
 - Before regenerating outputs, scan source text for escaped ampersand entities and preserve existing `Completed` marks in `revision-mistake-log.xlsx`.

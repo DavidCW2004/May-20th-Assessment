@@ -32,7 +32,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | R | Arrays and memory layout in practice: out-of-bounds access, undefined behaviour, segmentation faults, memory corruption. | Related: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | G | `sizeof` vs `strlen`, and what each actually measures. | Yes: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | G | Custom string routines: `mystrlen`, `string_copy`, pointer-based string functions. | Related: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
-| A | Command-line arguments in C: `argc`, `argv`, quoting, `atoi`, `atof`. | No |
+| A | Command-line arguments in C: `argc`, `argv`, quoting, `atoi`, `atof`. | Yes: [c-command-line-arguments-study-pack.pdf](topicsheets/c-command-line-arguments-study-pack.pdf) |
 | A | Multi-dimensional arrays and array-based simulations, including Game of Life style evolution. | Related: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | G | Struct-based exercises: points/rectangles, area tests, inside/outside checks. | No |
 | A | String-processing exercises: substitution/translation, palindrome detection, normalisation, `<ctype.h>` helpers such as `ispunct` and `tolower`. | No |
@@ -89,5 +89,5 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | R | File parsing exercises, including CSV-style parsing into structs and `Box<dyn Error>` return types. | Yes: [rust-error-handling-file-io-study-pack.pdf](topicsheets/rust-error-handling-file-io-study-pack.pdf) |
 | R | Custom iterators and more involved iterator pipelines over `HashMap`/`Vec`. | No |
 | A | Smart pointers beyond the lecture slides: `Box<T>` and `Rc<T>`. | Related: [rust-error-handling-file-io-study-pack.pdf](topicsheets/rust-error-handling-file-io-study-pack.pdf) |
-| R | Concurrency topics: spawned threads, `move` closures, joining, `mpsc` channels, `Arc<T>`, `Mutex<T>`, poisoned mutex handling, parallel aggregation. | No |
+| R | Concurrency topics: spawned threads, `move` closures, joining, `mpsc` channels, `Arc<T>`, `Mutex<T>`, poisoned mutex handling, parallel aggregation. | Yes: [rust-concurrency-parallelism-study-pack.pdf](topicsheets/rust-concurrency-parallelism-study-pack.pdf) |
 | A | Applied parallel exercises: Caesar cipher, league tables, word frequencies, Monte Carlo estimation, and bigram text models. | No |
