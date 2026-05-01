@@ -81,6 +81,13 @@ TRACKER_ROWS = [
     ["Rust Concurrency and Parallelism", "8", "`Arc<Mutex<i32>>` shared counter", "Trace two threads incrementing the same `Arc<Mutex<i32>>` counter and explain how shared ownership is provided and why each update is exclusive.", ""],
     ["Rust Concurrency and Parallelism", "9", "Poisoned mutex lock result", "For a mutex that was held by a thread when it panicked, write how `lock()` reports the problem and how you would handle the returned result instead of blindly assuming the lock succeeded.", ""],
     ["Rust Concurrency and Parallelism", "10", "Local results then final merge", "For a word-count task split across four threads, compare one global locked `HashMap` updated for every word with each thread building a local map and merging once at the end. Explain which is better and why.", ""],
+    ["C++ Error Handling and Lambdas", "5", "Stack unwinding and RAII cleanup", "In a function that creates a local `std::vector<int>` and then calls a function that throws, explain what happens to the vector during stack unwinding and why this is safer than manual cleanup after the throwing call.", ""],
+    ["C++ Error Handling and Lambdas", "8", "Reference-capture lambda syntax", "Write the full lambda assignment that captures `counter` by reference, increments the original counter, and includes the required semicolon after the lambda expression.", ""],
+    ["C++ Error Handling and Lambdas", "10", "Complete `count_if` lambda call", "Write a complete `std::count_if` call that counts values greater than 5 in `v`, making sure the lambda body and the algorithm call both have their closing brackets.", ""],
+    ["Rust Crash-course Basics", "3", "Shadowing parse syntax", "Starting from `let value = \"12\";`, use shadowing to parse it as an `i32`, then shadow it again so the final value is one larger.", ""],
+    ["Rust Crash-course Basics", "4", "`const` declaration syntax", "A Rust program needs a compile-time maximum user count of 100. Write the constant declaration with the required type annotation and Rust naming style.", ""],
+    ["Rust Crash-course Basics", "7", "Array debug printing", "Create an array of three integers and print the whole array using the correct debug-format placeholder, then explain why normal display formatting is not the right choice.", ""],
+    ["Rust Crash-course Basics", "10", "Semicolon returns unit", "Compare `fn f() -> i32 { 5 }` with `fn f() -> i32 { 5; }`: explain which one returns an `i32`, which one returns unit `()`, and why.", ""],
 ]
 
 

@@ -1702,3 +1702,208 @@ for local_counts in all_local_counts {
 ```
 
 Local results plus a final merge is usually better because most of the work runs independently without lock contention. The only shared step is the final merge, which is smaller and easier to reason about than locking a global map for every word.
+
+## C++ Error Handling and Lambdas
+
+### Q70 - Stack unwinding and RAII cleanup
+
+**Question:** In a function that creates a local `std::vector<int>` and then calls a function that throws, explain what happens to the vector during stack unwinding and why this is safer than manual cleanup after the throwing call.
+
+When an exception leaves a scope, C++ performs stack unwinding. That means it exits scopes and destroys local objects that were already constructed.
+
+```cpp
+#include <vector>
+
+void process() {
+    std::vector<int> values(100);
+
+    risky();  // throws
+}
+```
+
+If `risky()` throws, normal execution does not continue to the next line in `process`. But `values` is still destroyed as the scope is unwound. Its destructor releases the memory it owns.
+
+This is why RAII-managed objects are safer than manual cleanup:
+
+```cpp
+void process() {
+    int *values = new int[100];
+
+    risky();       // throws
+
+    delete[] values;  // skipped
+}
+```
+
+In the manual version, the cleanup line is skipped if `risky()` throws. In the RAII version, cleanup is tied to the object's destructor, so it still runs during stack unwinding.
+
+### Q71 - Reference-capture lambda syntax
+
+**Question:** Write the full lambda assignment that captures `counter` by reference, increments the original counter, and includes the required semicolon after the lambda expression.
+
+Capture by reference with `&counter` when the lambda should modify the original variable:
+
+```cpp
+int counter = 0;
+
+auto increment = [&counter]() {
+    counter += 1;
+};
+```
+
+The final semicolon is required because this is an assignment statement:
+
+```cpp
+auto increment = /* lambda expression */;
+```
+
+Calling the lambda changes the original `counter`:
+
+```cpp
+increment();
+increment();
+
+// counter is now 2
+```
+
+Without the reference capture, a value capture would copy `counter` into the lambda. With `[&counter]`, the lambda works with the original variable.
+
+### Q72 - Complete `count_if` lambda call
+
+**Question:** Write a complete `std::count_if` call that counts values greater than 5 in `v`, making sure the lambda body and the algorithm call both have their closing brackets.
+
+`std::count_if` takes a start iterator, an end iterator, and a predicate. The predicate can be a lambda:
+
+```cpp
+#include <algorithm>
+#include <vector>
+
+std::vector<int> v = {1, 7, 3, 9, 2};
+
+int count = std::count_if(
+    v.begin(),
+    v.end(),
+    [](int value) {
+        return value > 5;
+    }
+);
+```
+
+The closing pieces matter:
+
+```cpp
+    }   // closes the lambda body
+)       // closes the count_if argument list
+;       // ends the statement
+```
+
+This counts `7` and `9`, so `count` becomes `2`.
+
+## Rust Crash-course Basics
+
+### Q73 - Shadowing parse syntax
+
+**Question:** Starting from `let value = "12";`, use shadowing to parse it as an `i32`, then shadow it again so the final value is one larger.
+
+Use `parse::<i32>()` to tell Rust what type you want from the string. The `::<i32>` part is the turbofish syntax for supplying the target type.
+
+```rust
+let value = "12";
+let value = value.parse::<i32>().unwrap();
+let value = value + 1;
+
+println!("{value}");
+```
+
+The first `value` is a string slice. The second `let value` shadows it with an `i32`. The third `let value` shadows that integer with the result of adding one.
+
+After these lines, `value` is:
+
+```text
+13
+```
+
+This is shadowing, not mutation. Each `let value = ...` creates a new variable with the same name.
+
+### Q74 - `const` declaration syntax
+
+**Question:** A Rust program needs a compile-time maximum user count of 100. Write the constant declaration with the required type annotation and Rust naming style.
+
+Rust constants use `const`, require an explicit type annotation, and are usually named in uppercase with underscores.
+
+```rust
+const MAX_USERS: usize = 100;
+```
+
+The pieces are:
+
+- `const` means this is a compile-time constant.
+- `MAX_USERS` is the constant name.
+- `: usize` is the required type annotation.
+- `= 100;` assigns the value and ends the declaration.
+
+This is different from a normal local variable:
+
+```rust
+let max_users = 100;
+```
+
+Use `const` when the value is fixed for the program and should not be an ordinary runtime variable.
+
+### Q75 - Array debug printing
+
+**Question:** Create an array of three integers and print the whole array using the correct debug-format placeholder, then explain why normal display formatting is not the right choice.
+
+Use `{:?}` to print an array with debug formatting:
+
+```rust
+let values = [1, 2, 3];
+println!("{:?}", values);
+```
+
+This prints:
+
+```text
+[1, 2, 3]
+```
+
+The normal `{}` placeholder uses the `Display` trait. Arrays do not implement `Display` for whole-array printing. They do implement `Debug`, so `{:?}` is the correct placeholder for printing the array structure.
+
+Named formatting also works:
+
+```rust
+let values = [1, 2, 3];
+println!("{values:?}");
+```
+
+### Q76 - Semicolon returns unit
+
+**Question:** Compare `fn f() -> i32 { 5 }` with `fn f() -> i32 { 5; }`: explain which one returns an `i32`, which one returns unit `()`, and why.
+
+In Rust, a final expression without a semicolon becomes the return value of the block.
+
+This works:
+
+```rust
+fn f() -> i32 {
+    5
+}
+```
+
+The final expression is `5`, so the function returns an `i32`.
+
+This does not work:
+
+```rust
+fn f() -> i32 {
+    5;
+}
+```
+
+The semicolon turns `5` into a statement. A statement does not produce the `i32` return value. The block then evaluates to unit:
+
+```rust
+()
+```
+
+So the second function effectively returns unit `()`, not `i32`, which conflicts with the declared return type.
