@@ -76,6 +76,11 @@ TRACKER_ROWS = [
     ["C++ Moving from C", "7", "`auto` and static typing", "Given `auto x = 10; x = \"hello\";`, explain the compile error and what `auto` did, without describing it as dynamic typing.", ""],
     ["C Command-line Arguments", "6", "`atoi` invalid input vs zero", "For `int n = atoi(argv[1]);`, compare `argv[1]` values `\"abc\"` and `\"0\"`: state what each returns and why the return value alone cannot prove the input was valid.", ""],
     ["C Command-line Arguments", "9", "`strtol` no digits consumed", "For `char *end; long n = strtol(text, &end, 10);`, explain what `end == text` means for `text = \"abc\"`, then say what `*end` should be after a clean full-number parse.", ""],
+    ["Rust Concurrency and Parallelism", "2", "Spawned thread lifetime and `move`", "In `fn start() { let text = String::from(\"hi\"); thread::spawn(|| println!(\"{text}\")); }`, explain why borrowing `text` is rejected, then fix the spawn with `move` and say why the thread must own the value.", ""],
+    ["Rust Concurrency and Parallelism", "6", "Cloned channel transmitters", "Write the loop for four workers that all send through one `mpsc` channel: clone `tx` for each worker, move the clone into the closure, then explain why every clone still reaches the same `rx`.", ""],
+    ["Rust Concurrency and Parallelism", "8", "`Arc<Mutex<i32>>` shared counter", "Trace two threads incrementing the same `Arc<Mutex<i32>>` counter and explain how shared ownership is provided and why each update is exclusive.", ""],
+    ["Rust Concurrency and Parallelism", "9", "Poisoned mutex lock result", "For a mutex that was held by a thread when it panicked, write how `lock()` reports the problem and how you would handle the returned result instead of blindly assuming the lock succeeded.", ""],
+    ["Rust Concurrency and Parallelism", "10", "Local results then final merge", "For a word-count task split across four threads, compare one global locked `HashMap` updated for every word with each thread building a local map and merging once at the end. Explain which is better and why.", ""],
 ]
 
 

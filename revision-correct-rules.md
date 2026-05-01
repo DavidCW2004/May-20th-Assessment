@@ -1399,3 +1399,306 @@ x = "hello";
 ```
 
 because `x` is still an `int`. `auto` does not make the variable dynamically typed. It only saves you from writing the type explicitly; the variable still has one fixed compile-time type.
+
+## C Command-line Arguments
+
+### Q63 - `atoi` invalid input vs zero
+
+**Question:** For `int n = atoi(argv[1]);`, compare `argv[1]` values `"abc"` and `"0"`: state what each returns and why the return value alone cannot prove the input was valid.
+
+`atoi` converts a string to an `int`, but it does not give you a separate error result.
+
+```c
+#include <stdlib.h>
+
+int a = atoi("abc");
+int b = atoi("0");
+```
+
+Both calls produce `0`:
+
+```text
+atoi("abc") -> 0
+atoi("0")   -> 0
+```
+
+The first case is invalid input: the string does not start with a valid integer. The second case is valid input: it is the integer zero. Since both return the same value, `atoi` alone cannot tell you whether parsing succeeded.
+
+For checked parsing, use `strtol` instead:
+
+```c
+#include <errno.h>
+#include <limits.h>
+#include <stdlib.h>
+
+char *end = NULL;
+errno = 0;
+
+long value = strtol(argv[1], &end, 10);
+
+if (end == argv[1] || *end != '\0' || errno == ERANGE ||
+    value < INT_MIN || value > INT_MAX) {
+    /* invalid integer */
+}
+```
+
+The key point is that `atoi` is short but weak. It is fine for quick examples, but it cannot reliably distinguish bad input from a real zero.
+
+### Q64 - `strtol` no digits consumed
+
+**Question:** For `char *end; long n = strtol(text, &end, 10);`, explain what `end == text` means for `text = "abc"`, then say what `*end` should be after a clean full-number parse.
+
+`strtol` writes the stopping position into `end`. That is why `end` is passed by address:
+
+```c
+char *end = NULL;
+long n = strtol(text, &end, 10);
+```
+
+For this input:
+
+```c
+char text[] = "abc";
+```
+
+there are no digits at the start of the string. `strtol` cannot parse a number, so it leaves `end` pointing at the start:
+
+```c
+end == text
+```
+
+That means no characters were consumed.
+
+For a clean full-number parse:
+
+```c
+char text[] = "123";
+char *end = NULL;
+long n = strtol(text, &end, 10);
+```
+
+the parsed value is `123`, and `end` points at the string terminator:
+
+```c
+*end == '\0'
+```
+
+So the usual checks are:
+
+```c
+if (end == text) {
+    /* no digits at the start */
+}
+
+if (*end != '\0') {
+    /* extra junk after the number */
+}
+```
+
+For example, `"123abc"` parses `123`, but `end` points at `'a'`, so it is not a clean full-number parse.
+
+## Rust Concurrency and Parallelism
+
+### Q65 - Spawned thread lifetime and `move`
+
+**Question:** In `fn start() { let text = String::from("hi"); thread::spawn(|| println!("{text}")); }`, explain why borrowing `text` is rejected, then fix the spawn with `move` and say why the thread must own the value.
+
+A spawned thread may keep running after the function that created it has returned. The local variable `text` lives in the stack frame of `start`, and that stack frame is destroyed when `start` returns.
+
+This is rejected:
+
+```rust
+use std::thread;
+
+fn start() {
+    let text = String::from("hi");
+
+    thread::spawn(|| {
+        println!("{text}");
+    });
+}
+```
+
+Without `move`, the closure tries to borrow `text`. That would be unsafe because the thread might use the borrow after `start` has returned and `text` has been dropped.
+
+Fix it by moving ownership into the closure:
+
+```rust
+use std::thread;
+
+fn start() {
+    let text = String::from("hi");
+
+    thread::spawn(move || {
+        println!("{text}");
+    });
+}
+```
+
+Now the thread owns `text`, so the value remains valid for as long as the thread needs it. After the move, the parent scope cannot use the original `text` again unless it cloned it first.
+
+### Q66 - Cloned channel transmitters
+
+**Question:** Write the loop for four workers that all send through one `mpsc` channel: clone `tx` for each worker, move the clone into the closure, then explain why every clone still reaches the same `rx`.
+
+An `mpsc` channel has one receiver and one or more transmitters. Cloning `tx` creates another sender handle to the same channel, not a separate channel.
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    let (tx, rx) = mpsc::channel();
+    let mut handles = Vec::new();
+
+    for worker_id in 0..4 {
+        let tx = tx.clone();
+
+        handles.push(thread::spawn(move || {
+            tx.send(worker_id * 10).unwrap();
+        }));
+    }
+
+    drop(tx);
+
+    for value in rx {
+        println!("{value}");
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+}
+```
+
+Each worker needs its own owned transmitter because the closure is moved into a thread. All the cloned transmitters still feed the same receiver, `rx`, because they are handles to the same channel.
+
+The `drop(tx)` line drops the original sender in `main`. Without it, the `for value in rx` loop could wait forever because one sender would still exist.
+
+### Q67 - `Arc<Mutex<i32>>` shared counter
+
+**Question:** Trace two threads incrementing the same `Arc<Mutex<i32>>` counter and explain how shared ownership is provided and why each update is exclusive.
+
+`Arc` provides shared ownership across threads. `Mutex` protects the value so only one thread can access it through the lock at a time.
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = Vec::new();
+
+    for _ in 0..2 {
+        let counter = Arc::clone(&counter);
+
+        handles.push(thread::spawn(move || {
+            let mut value = counter.lock().unwrap();
+            *value += 1;
+        }));
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    println!("{}", *counter.lock().unwrap());
+}
+```
+
+Trace:
+
+- Both threads own an `Arc` pointing at the same `Mutex<i32>`.
+- A thread calls `lock()` and gets a `MutexGuard`.
+- While that guard exists, the mutex is locked.
+- The thread updates the protected integer with `*value += 1`.
+- When the guard goes out of scope, the mutex unlocks.
+- The next thread can then acquire the lock and update the value.
+
+The updates are exclusive because only one thread can hold the mutex guard at a time. With two successful increments, the final value is `2`.
+
+### Q68 - Poisoned mutex lock result
+
+**Question:** For a mutex that was held by a thread when it panicked, write how `lock()` reports the problem and how you would handle the returned result instead of blindly assuming the lock succeeded.
+
+`lock()` returns a `Result`, not the protected value directly. The success case contains a mutex guard.
+
+For a `Mutex<i32>`, the return is roughly:
+
+```rust
+Result<MutexGuard<i32>, PoisonError<MutexGuard<i32>>>
+```
+
+A mutex becomes poisoned if a thread panics while holding the lock. Later, `lock()` returns `Err(...)` to warn that the protected data may be inconsistent.
+
+Handle the result explicitly:
+
+```rust
+use std::sync::Mutex;
+
+let counter = Mutex::new(0);
+
+match counter.lock() {
+    Ok(mut value) => {
+        *value += 1;
+    }
+    Err(poisoned) => {
+        let mut value = poisoned.into_inner();
+        *value += 1;
+    }
+}
+```
+
+For a simple counter, recovering with `into_inner()` may be reasonable. For more complex state, the better answer may be to report the error or stop, because the panic could have left the data halfway through an update.
+
+### Q69 - Local results then final merge
+
+**Question:** For a word-count task split across four threads, compare one global locked `HashMap` updated for every word with each thread building a local map and merging once at the end. Explain which is better and why.
+
+A single global locked `HashMap` is correct but often slow. Every word update needs the same lock:
+
+```text
+lock map -> update one word -> unlock map
+```
+
+With four threads, they spend a lot of time waiting for the map rather than counting in parallel.
+
+The better pattern is:
+
+```text
+thread 1 builds local map for chunk 1
+thread 2 builds local map for chunk 2
+thread 3 builds local map for chunk 3
+thread 4 builds local map for chunk 4
+main thread merges the four maps
+```
+
+Each worker owns its local `HashMap`, so it does not need to lock for every word:
+
+```rust
+use std::collections::HashMap;
+
+fn count_words(words: &[String]) -> HashMap<String, usize> {
+    let mut counts = HashMap::new();
+
+    for word in words {
+        *counts.entry(word.clone()).or_insert(0) += 1;
+    }
+
+    counts
+}
+```
+
+Then merge local maps:
+
+```rust
+let mut final_counts = HashMap::new();
+
+for local_counts in all_local_counts {
+    for (word, count) in local_counts {
+        *final_counts.entry(word).or_insert(0) += count;
+    }
+}
+```
+
+Local results plus a final merge is usually better because most of the work runs independently without lock contention. The only shared step is the final merge, which is smaller and easier to reason about than locking a global map for every word.

@@ -51,7 +51,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | A | Inheritance: public/protected/private inheritance, base vs derived access, constructor/destructor order, interface design. | Related: [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
 | R | Operator overloading: overloadable vs non-overloadable operators, member vs friend functions, `[]`, `()`, `<<`, least-surprise design. | Yes: [cpp-operator-overloading-study-pack.pdf](topicsheets/cpp-operator-overloading-study-pack.pdf) |
 | R | Templates and STL: macros vs templates, function templates, class templates, type safety, STL containers including `stack` and `vector`, iterators, `auto` with iterators. | Yes: [cpp-templates-stl-study-pack.pdf](topicsheets/cpp-templates-stl-study-pack.pdf) |
-| A | Error handling and lambdas: `try`/`catch`/`throw`, standard exceptions, good exception practice, lambda syntax, capture by value/reference. | No |
+| A | Error handling and lambdas: `try`/`catch`/`throw`, standard exceptions, good exception practice, lambda syntax, capture by value/reference. | Yes: [cpp-error-handling-lambdas-study-pack.pdf](topicsheets/cpp-error-handling-lambdas-study-pack.pdf) |
 | A | Access control details in inheritance: `private`, `protected`, `public`. | Related: [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
 | A | Why derived classes can access `protected` members but not `private` members. | No |
 | G | Getter/setter style access when direct member access is restricted. | No |
@@ -70,7 +70,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | Status | Topic | Topic sheet created? |
 |---|---|---|
 | A | Tooling and motivation: why Rust, memory-safety goals, `rustc`, `cargo`, Rust Book/docs. | No |
-| R | Crash-course basics: `let`, `mut`, shadowing, `const`, integer types, tuples, arrays, runtime bounds checks, printing. | No |
+| R | Crash-course basics: `let`, `mut`, shadowing, `const`, integer types, tuples, arrays, runtime bounds checks, printing. | Yes: [rust-crash-course-basics-study-pack.pdf](topicsheets/rust-crash-course-basics-study-pack.pdf) |
 | R | Ownership fundamentals: stack vs heap, `String`, moves, copies, drop, ownership rules, references and borrowing, mutable borrowing, dangling references. | Yes: [rust-ownership-borrowing-study-pack.pdf](topicsheets/rust-ownership-borrowing-study-pack.pdf) |
 | R | Borrowing and slices: references, `&[T]`, `&str`, `String` vs `&str`, avoiding dangling references. | Yes: [rust-ownership-borrowing-study-pack.pdf](topicsheets/rust-ownership-borrowing-study-pack.pdf) |
 | R | Collections and data modelling: `Vec<T>`, strings, structs, methods, associated functions, enums, `Option<T>`, `match`, `if let`. | Yes: [rust-collections-data-modelling-study-pack.pdf](topicsheets/rust-collections-data-modelling-study-pack.pdf) |
