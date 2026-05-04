@@ -1907,3 +1907,351 @@ The semicolon turns `5` into a statement. A statement does not produce the `i32`
 ```
 
 So the second function effectively returns unit `()`, not `i32`, which conflicts with the declared return type.
+
+## C Memory Debugging Tools
+
+### Q77 - Use-after-free dereference
+
+**Question:** Given `free(p); return *p;`, explain why `p` is stale after `free`, what dereferencing it means, and what kind of behaviour C gives for that access.
+
+After `free(p)`, the allocation that `p` used to point at no longer belongs to your program.
+
+```c
+free(p);
+return *p;
+```
+
+The pointer variable `p` still contains an address, but that address is stale. Dereferencing means using `*p` to read the object at that address. Since the allocation has already been freed, there is no valid object there for your program to read.
+
+This is undefined behaviour:
+
+```text
+the program might appear to work
+the program might crash
+the program might read old data
+the program might corrupt later behaviour
+```
+
+A safer pattern is to stop using the pointer after `free`. If the pointer remains in scope and might accidentally be reused, set it to `NULL` after freeing:
+
+```c
+free(p);
+p = NULL;
+```
+
+### Q78 - Valgrind full leak-check command
+
+**Question:** Write the command to run `./app` under Valgrind with full leak checking, then add one useful option for tracing where uninitialised values came from.
+
+Build the program with debug information first:
+
+```bash
+gcc -g -Wall -Wextra -o app main.c
+```
+
+Then run it under Valgrind:
+
+```bash
+valgrind --leak-check=full --track-origins=yes ./app
+```
+
+The important pieces are:
+
+- `--leak-check=full` asks Valgrind for detailed leak reports.
+- `--track-origins=yes` helps trace where uninitialised values came from.
+- `./app` is the program being checked.
+
+Valgrind runs the already-built executable under a memory checker. This is different from AddressSanitizer, which is compiled into the program with `-fsanitize=address`.
+
+### Q79 - Debug info for memory-tool reports
+
+**Question:** Explain what `-g` adds to a debug build and why memory tools give more useful reports when source-level debug information is present.
+
+The `-g` flag adds debug information to the compiled program:
+
+```bash
+gcc -g -Wall -Wextra -o app main.c
+```
+
+This debug information maps machine code back to source-level details such as file names, function names, and line numbers. Memory tools can still detect some problems without it, but their reports are less useful because they may only show raw addresses or less precise locations.
+
+With `-g`, a report can point you toward the relevant source line:
+
+```text
+Invalid write of size 4
+    at main.c:8
+```
+
+That makes it much faster to connect the runtime report to the actual bad access in your code.
+
+### Q80 - First memory-tool error
+
+**Question:** A memory tool prints several invalid reads and writes. Explain which report you would investigate first and why later reports may be consequences of earlier corruption.
+
+Start with the first invalid access reported.
+
+Memory bugs often cascade. One out-of-bounds write can corrupt nearby memory, and that corruption can cause later invalid reads, invalid writes, crashes, or strange values. If you start with the later reports, you may be debugging symptoms instead of the original cause.
+
+Practical workflow:
+
+1. Find the first invalid read or write in the report.
+2. Use the file and line number to inspect that source operation.
+3. Identify the object being accessed and its valid lifetime or bounds.
+4. Fix that first bug.
+5. Run the memory tool again.
+
+After the first bug is fixed, some later reports may disappear because they were consequences of the earlier memory corruption.
+
+### Q81 - Memory bugs and undefined behaviour
+
+**Question:** A C program prints the expected answer but AddressSanitizer reports an invalid access. Explain why the program is still wrong and connect this to undefined behaviour.
+
+Correct-looking output does not prove a C program used memory correctly.
+
+If AddressSanitizer reports an invalid access, the program has done something outside the rules of C, such as reading past an array, writing past an allocation, or using memory after `free`. Those are undefined behaviour.
+
+Undefined behaviour means C gives no reliable meaning to the program after that operation. The program might:
+
+- print the expected answer today
+- crash tomorrow
+- behave differently with another compiler
+- corrupt unrelated memory
+- fail only when input size changes
+
+So the sanitizer report matters even if the visible output looks right. The correct fix is to remove the invalid access, not to ignore the report because one run happened to print the expected result.
+
+## Rust Custom Iterators and Pipelines
+
+### Q82 - Lazy `map` adapter
+
+**Question:** Given `let doubled = values.iter().map(|n| n * 2);`, explain what `doubled` contains before any consumer runs, then show one way to produce actual values.
+
+`map` is lazy. It does not immediately loop over the vector and build a new vector.
+
+This line creates another iterator:
+
+```rust
+let values = vec![1, 2, 3, 4];
+let doubled = values.iter().map(|n| *n * 2);
+```
+
+At that point, `doubled` means:
+
+```text
+an iterator that knows how to double each value when asked
+```
+
+No doubled values have been produced yet. A consumer must ask the iterator for values.
+
+For example, `collect` consumes the iterator and builds a vector:
+
+```rust
+let values = vec![1, 2, 3, 4];
+
+let doubled: Vec<i32> = values
+    .iter()
+    .map(|n| *n * 2)
+    .collect();
+
+println!("{doubled:?}"); // [2, 4, 6, 8]
+```
+
+Other consumers include `sum`, `count`, `any`, `all`, `fold`, and a `for` loop.
+
+### Q83 - Even-square pipeline collection
+
+**Question:** Starting with `let values = vec![1, 2, 3, 4];`, write the full iterator chain that filters even numbers, maps them to squares, and collects with an explicit `Vec` type.
+
+The chain needs three main stages:
+
+1. `filter` keeps only even numbers.
+2. `map` turns each kept number into its square.
+3. `collect::<Vec<_>>()` builds the final vector.
+
+```rust
+let values = vec![1, 2, 3, 4];
+
+let squares = values
+    .iter()
+    .filter(|n| **n % 2 == 0)
+    .map(|n| *n * *n)
+    .collect::<Vec<_>>();
+
+println!("{squares:?}"); // [4, 16]
+```
+
+The `map` must come before `collect` because `collect` is the consumer at the end of the chain. Once you collect, you are no longer building the iterator pipeline.
+
+The explicit type can also be written on the variable:
+
+```rust
+let squares: Vec<i32> = values
+    .iter()
+    .filter(|n| **n % 2 == 0)
+    .map(|n| *n * *n)
+    .collect();
+```
+
+Both versions tell Rust what collection type to build.
+
+### Q84 - Text word pipeline
+
+**Question:** Given `let text = "Rust, rust! C?";`, write a pipeline that splits into words, lowercases each cleaned word, removes empty strings, and collects into `Vec<String>`.
+
+Use `split_whitespace` to split the sentence, then use `map` to clean and lowercase each word.
+
+```rust
+let text = "Rust, rust! C?";
+
+let words: Vec<String> = text
+    .split_whitespace()
+    .map(|word| {
+        word.trim_matches(|ch: char| !ch.is_alphanumeric())
+            .to_lowercase()
+    })
+    .filter(|word| !word.is_empty())
+    .collect();
+
+println!("{words:?}"); // ["rust", "rust", "c"]
+```
+
+The stages are:
+
+- `split_whitespace()` produces rough word pieces.
+- `trim_matches(...)` removes punctuation from the outside of each word.
+- `to_lowercase()` creates a lowercase `String`.
+- `filter(...)` removes any empty result.
+- `collect()` builds the `Vec<String>`.
+
+You do not use `iter_mut` here because `split_whitespace` already returns an iterator over borrowed string slices. The usual Rust style is to create new cleaned strings rather than mutate the original string letter by letter.
+
+### Q85 - HashMap score pipeline
+
+**Question:** Given a map of team names to scores, collect entries with scores at least 10 into a vector, making clear where filtering and copying out borrowed values happen.
+
+With `HashMap<&str, i32>`, `iter()` gives borrowed key-value pairs. The filter checks the borrowed score, then the map step copies out simpler values for the result vector.
+
+```rust
+use std::collections::HashMap;
+
+let mut scores: HashMap<&str, i32> = HashMap::new();
+scores.insert("red", 12);
+scores.insert("blue", 7);
+scores.insert("green", 15);
+
+let high: Vec<(&str, i32)> = scores
+    .iter()
+    .filter(|(_, score)| **score >= 10)
+    .map(|(team, score)| (*team, *score))
+    .collect();
+
+println!("{high:?}");
+```
+
+The `filter` stage decides which entries stay:
+
+```rust
+.filter(|(_, score)| **score >= 10)
+```
+
+The `map` stage changes the item shape:
+
+```rust
+.map(|(team, score)| (*team, *score))
+```
+
+That turns borrowed pieces from the map iterator into a cleaner `Vec<(&str, i32)>`.
+
+If you leave out the `map`, you can still collect, but the vector contains references into the original map instead:
+
+```rust
+let high_refs: Vec<(&&str, &i32)> = scores
+    .iter()
+    .filter(|(_, score)| **score >= 10)
+    .collect();
+```
+
+So the `map` is needed when the target answer wants copied-out key-value pairs rather than the direct borrowed iterator items.
+
+### Q86 - Custom iterator field access
+
+**Question:** In `Counter::next`, fix a body that tries to read `self[current]`; write the correct field access syntax for `current` and explain why indexing syntax is wrong.
+
+For a struct field, use dot syntax:
+
+```rust
+self.current
+```
+
+not:
+
+```rust
+self[current]
+```
+
+`self[current]` means “index into `self` using `current` as an index”. That syntax is for indexable things such as arrays, slices, vectors, or types that implement indexing. A `Counter` struct is not being indexed here. You are reading its named field.
+
+Correct `next` body:
+
+```rust
+fn next(&mut self) -> Option<Self::Item> {
+    if self.current >= self.end {
+        None
+    } else {
+        let value = self.current;
+        self.current += 1;
+        Some(value)
+    }
+}
+```
+
+The key field accesses are:
+
+```rust
+self.current
+self.end
+```
+
+### Q87 - `next` returns `Option`
+
+**Question:** For a custom counter iterator, explain both possible `next` results: what is returned when there is another value and what is returned when the iterator is finished.
+
+The `next` method returns:
+
+```rust
+Option<Self::Item>
+```
+
+That means it has two possible result shapes:
+
+```rust
+Some(item)
+None
+```
+
+Use `Some(item)` when the iterator has another value to produce:
+
+```rust
+let value = self.current;
+self.current += 1;
+Some(value)
+```
+
+Use `None` when the iterator is finished:
+
+```rust
+if self.current >= self.end {
+    None
+}
+```
+
+So for `Counter::new(3)`, repeated calls to `next` produce:
+
+```text
+Some(0)
+Some(1)
+Some(2)
+None
+```
+
+`Some` means “here is the next item”. `None` means “there are no more items”.

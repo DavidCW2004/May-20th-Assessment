@@ -88,6 +88,17 @@ TRACKER_ROWS = [
     ["Rust Crash-course Basics", "4", "`const` declaration syntax", "A Rust program needs a compile-time maximum user count of 100. Write the constant declaration with the required type annotation and Rust naming style.", ""],
     ["Rust Crash-course Basics", "7", "Array debug printing", "Create an array of three integers and print the whole array using the correct debug-format placeholder, then explain why normal display formatting is not the right choice.", ""],
     ["Rust Crash-course Basics", "10", "Semicolon returns unit", "Compare `fn f() -> i32 { 5 }` with `fn f() -> i32 { 5; }`: explain which one returns an `i32`, which one returns unit `()`, and why.", ""],
+    ["C Memory Debugging Tools", "3", "Use-after-free dereference", "Given `free(p); return *p;`, explain why `p` is stale after `free`, what dereferencing it means, and what kind of behaviour C gives for that access.", ""],
+    ["C Memory Debugging Tools", "4", "Valgrind full leak-check command", "Write the command to run `./app` under Valgrind with full leak checking, then add one useful option for tracing where uninitialised values came from.", ""],
+    ["C Memory Debugging Tools", "6", "Debug info for memory-tool reports", "Explain what `-g` adds to a debug build and why memory tools give more useful reports when source-level debug information is present.", ""],
+    ["C Memory Debugging Tools", "9", "First memory-tool error", "A memory tool prints several invalid reads and writes. Explain which report you would investigate first and why later reports may be consequences of earlier corruption.", ""],
+    ["C Memory Debugging Tools", "10", "Memory bugs and undefined behaviour", "A C program prints the expected answer but AddressSanitizer reports an invalid access. Explain why the program is still wrong and connect this to undefined behaviour.", ""],
+    ["Rust Custom Iterators and Pipelines", "1", "Lazy `map` adapter", "Given `let doubled = values.iter().map(|n| n * 2);`, explain what `doubled` contains before any consumer runs, then show one way to produce actual values.", ""],
+    ["Rust Custom Iterators and Pipelines", "2", "Even-square pipeline collection", "Starting with `let values = vec![1, 2, 3, 4];`, write the full iterator chain that filters even numbers, maps them to squares, and collects with an explicit `Vec` type.", ""],
+    ["Rust Custom Iterators and Pipelines", "5", "Text word pipeline", "Given `let text = \"Rust, rust! C?\";`, write a pipeline that splits into words, lowercases each cleaned word, removes empty strings, and collects into `Vec<String>`.", ""],
+    ["Rust Custom Iterators and Pipelines", "6", "HashMap score pipeline", "Given a map of team names to scores, collect entries with scores at least 10 into a vector, making clear where filtering and copying out borrowed values happen.", ""],
+    ["Rust Custom Iterators and Pipelines", "8", "Custom iterator field access", "In `Counter::next`, fix a body that tries to read `self[current]`; write the correct field access syntax for `current` and explain why indexing syntax is wrong.", ""],
+    ["Rust Custom Iterators and Pipelines", "9", "`next` returns `Option`", "For a custom counter iterator, explain both possible `next` results: what is returned when there is another value and what is returned when the iterator is finished.", ""],
 ]
 
 

@@ -38,7 +38,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | A | String-processing exercises: substitution/translation, palindrome detection, normalisation, `<ctype.h>` helpers such as `ispunct` and `tolower`. | No |
 | R | Pointer exercises: basic pointers, pointers with arrays, tricky pointers, pointer arithmetic. | Yes: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | R | Generic low-level programming with `void *`: type-generic swap, comparison functions, generic merge sort. | Related: [c-function-pointers-callbacks-study-pack.pdf](topicsheets/c-function-pointers-callbacks-study-pack.pdf) |
-| R | Debugging tools for memory bugs: Valgrind and address sanitiser. | No |
+| R | Debugging tools for memory bugs: Valgrind and address sanitiser. | Yes: [c-memory-debugging-tools-study-pack.pdf](topicsheets/c-memory-debugging-tools-study-pack.pdf) |
 | A | Stack implementation practice using linked structures, `push`/`pop`, recursion for printing, and empty-stack edge cases. | Related: [c-structures-dynamic-data-study-pack.pdf](topicsheets/c-structures-dynamic-data-study-pack.pdf) |
 
 ## C++
@@ -87,7 +87,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | R | `Option`, `Some`/`None`, `match`, and `if let` in small data-structure exercises. | Yes: [rust-collections-data-modelling-study-pack.pdf](topicsheets/rust-collections-data-modelling-study-pack.pdf) |
 | A | Unit tests, integration tests, assertion patterns, and float comparisons with tolerances. | Related: [rust-generics-traits-study-pack.pdf](topicsheets/rust-generics-traits-study-pack.pdf) |
 | R | File parsing exercises, including CSV-style parsing into structs and `Box<dyn Error>` return types. | Yes: [rust-error-handling-file-io-study-pack.pdf](topicsheets/rust-error-handling-file-io-study-pack.pdf) |
-| R | Custom iterators and more involved iterator pipelines over `HashMap`/`Vec`. | No |
+| R | Custom iterators and more involved iterator pipelines over `HashMap`/`Vec`. | Yes: [rust-custom-iterators-pipelines-study-pack.pdf](topicsheets/rust-custom-iterators-pipelines-study-pack.pdf) |
 | A | Smart pointers beyond the lecture slides: `Box<T>` and `Rc<T>`. | Related: [rust-error-handling-file-io-study-pack.pdf](topicsheets/rust-error-handling-file-io-study-pack.pdf) |
 | R | Concurrency topics: spawned threads, `move` closures, joining, `mpsc` channels, `Arc<T>`, `Mutex<T>`, poisoned mutex handling, parallel aggregation. | Yes: [rust-concurrency-parallelism-study-pack.pdf](topicsheets/rust-concurrency-parallelism-study-pack.pdf) |
 | A | Applied parallel exercises: Caesar cipher, league tables, word frequencies, Monte Carlo estimation, and bigram text models. | No |
