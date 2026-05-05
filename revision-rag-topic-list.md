@@ -10,7 +10,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 
 | Status | Topic | Topic sheet created? |
 |---|---|---|
-| A | Basic C syntax and program layout: `main`, comments, `#include`, blocks, semicolons, `printf`, escape sequences, automatic variables, stack allocation, static typing, format specifiers. | No |
+| A | Basic C syntax and program layout: `main`, comments, `#include`, blocks, semicolons, `printf`, escape sequences, automatic variables, stack allocation, static typing, format specifiers. | Yes: [c-basic-syntax-program-layout-study-pack.pdf](topicsheets/c-basic-syntax-program-layout-study-pack.pdf) |
 | R | Types and conversions: integer division, signed vs unsigned behaviour, promotion, casting, chars, floats, booleans, `typedef`, `size_t`, structs as data types, enums/unions. | Yes: [c-types-conversions-study-pack.pdf](topicsheets/c-types-conversions-study-pack.pdf) |
 | A | Arrays and strings: 1D/2D arrays, contiguous memory, indexing, bounds errors, char arrays, null terminator, string formatting/printing, `<string.h>` functions. | Related: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | A | Pointers and memory: addresses, dereferencing, arrays as pointers, arrays of strings, `malloc`, `free`, dangling pointers, double-free, memory leaks, segmentation faults. | Yes: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
@@ -28,14 +28,14 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | R | Global vs `static` variables. | Related: [c-preprocessor-macros-headers-study-pack.pdf](topicsheets/c-preprocessor-macros-headers-study-pack.pdf) |
 | R | Output buffering and forcing `printf` output to appear immediately. | Yes: [c-files-streams-study-pack.pdf](topicsheets/c-files-streams-study-pack.pdf) |
 | R | `errno` usage: only inspect it after an actual failure. | Related: [c-files-streams-study-pack.pdf](topicsheets/c-files-streams-study-pack.pdf) |
-| A | Control flow and early problem-solving patterns: `if`, `for`, `while`, factorial, numerical approximation of `e`, compile/link/run workflow. | No |
+| A | Control flow and early problem-solving patterns: `if`, `for`, `while`, factorial, numerical approximation of `e`, compile/link/run workflow. | Yes: [c-control-flow-problem-solving-study-pack.pdf](topicsheets/c-control-flow-problem-solving-study-pack.pdf) |
 | R | Arrays and memory layout in practice: out-of-bounds access, undefined behaviour, segmentation faults, memory corruption. | Related: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | G | `sizeof` vs `strlen`, and what each actually measures. | Yes: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | G | Custom string routines: `mystrlen`, `string_copy`, pointer-based string functions. | Related: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | A | Command-line arguments in C: `argc`, `argv`, quoting, `atoi`, `atof`. | Yes: [c-command-line-arguments-study-pack.pdf](topicsheets/c-command-line-arguments-study-pack.pdf) |
 | A | Multi-dimensional arrays and array-based simulations, including Game of Life style evolution. | Related: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | G | Struct-based exercises: points/rectangles, area tests, inside/outside checks. | No |
-| A | String-processing exercises: substitution/translation, palindrome detection, normalisation, `<ctype.h>` helpers such as `ispunct` and `tolower`. | No |
+| A | String-processing exercises: substitution/translation, palindrome detection, normalisation, `<ctype.h>` helpers such as `ispunct` and `tolower`. | Yes: [c-string-processing-study-pack.pdf](topicsheets/c-string-processing-study-pack.pdf) |
 | R | Pointer exercises: basic pointers, pointers with arrays, tricky pointers, pointer arithmetic. | Yes: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | R | Generic low-level programming with `void *`: type-generic swap, comparison functions, generic merge sort. | Related: [c-function-pointers-callbacks-study-pack.pdf](topicsheets/c-function-pointers-callbacks-study-pack.pdf) |
 | R | Debugging tools for memory bugs: Valgrind and address sanitiser. | Yes: [c-memory-debugging-tools-study-pack.pdf](topicsheets/c-memory-debugging-tools-study-pack.pdf) |
@@ -62,7 +62,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | R | Constructor/destructor tracing to understand object lifetime. | Related: [cpp-smart-pointers-unique-ptr-study-pack.pdf](topicsheets/cpp-smart-pointers-unique-ptr-study-pack.pdf), [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
 | R | Virtual functions and dynamic binding through base-class pointers. | Yes: [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
 | R | Member initialiser lists for constructors. | Related: [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
-| A | Multiple inheritance. | No |
+| A | Multiple inheritance. | Yes: [cpp-multiple-inheritance-study-pack.pdf](topicsheets/cpp-multiple-inheritance-study-pack.pdf) |
 | R | Smart-pointer practice with `std::unique_ptr`. | Yes: [cpp-smart-pointers-unique-ptr-study-pack.pdf](topicsheets/cpp-smart-pointers-unique-ptr-study-pack.pdf) |
 
 ## Rust

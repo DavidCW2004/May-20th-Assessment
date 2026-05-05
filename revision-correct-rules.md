@@ -2255,3 +2255,588 @@ None
 ```
 
 `Some` means “here is the next item”. `None` means “there are no more items”.
+
+## C Basic Syntax and Program Layout
+
+### Q88 - Semicolons after declarations
+
+**Question:** Given a short program containing `int x = 4`, `double y = 2.5`, and a `printf` call without statement endings, fix every missing semicolon and explain why the declarations need them.
+
+In C, declaration statements and function-call statements normally end with semicolons.
+
+Broken version:
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int x = 4
+    double y = 2.5
+    printf("%d %f\n", x, y)
+    return 0;
+}
+```
+
+Fixed version:
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int x = 4;
+    double y = 2.5;
+    printf("%d %f\n", x, y);
+    return 0;
+}
+```
+
+The second declaration needs its semicolon here:
+
+```c
+double y = 2.5;
+```
+
+Without it, the declaration statement is unfinished. The compiler then tries to parse the next line as if it is still part of the previous statement, which can make the error appear slightly later than the actual missing semicolon.
+
+### Q89 - Tab escape sequence
+
+**Question:** Write a `printf` statement that prints two integer values separated by a tab and followed by a newline, using the correct escape sequence for the tab.
+
+Use `\t` for a tab and `\n` for a newline:
+
+```c
+int a = 10;
+int b = 20;
+
+printf("%d\t%d\n", a, b);
+```
+
+The output is laid out like this:
+
+```text
+10    20
+```
+
+The exact width of the gap depends on the terminal's tab stops, but the important escape sequence is:
+
+```c
+\t
+```
+
+Do not write `/t`. Escape sequences use a backslash:
+
+```c
+\t   /* tab */
+\n   /* newline */
+```
+
+### Q90 - `return 0` from `main`
+
+**Question:** For a small `int main(void)` program that finishes normally, write the final return statement and explain what status it reports to the operating system.
+
+A normal successful `main` usually ends with:
+
+```c
+return 0;
+```
+
+Full example:
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    printf("Done\n");
+    return 0;
+}
+```
+
+The return value from `main` is the program's exit status. Returning `0` indicates successful program termination to the operating system.
+
+Non-zero return values usually mean failure or some kind of abnormal result:
+
+```c
+return 1;
+```
+
+So the key idea is:
+
+```text
+return 0 from main = program finished successfully
+```
+
+## C Control Flow and Problem Solving
+
+### Q91 - Factorial loop variable
+
+**Question:** Write a factorial loop that counts down from `n` to `1`, then trace `n = 4` and identify which variable must be multiplied into the accumulator each iteration.
+
+Counting down is fine, but the accumulator must multiply by the loop variable, not by `n` every time.
+
+Correct version:
+
+```c
+int factorial(int n) {
+    int acc = 1;
+
+    for (int i = n; i > 0; i--) {
+        acc *= i;
+    }
+
+    return acc;
+}
+```
+
+For `n = 4`, this does:
+
+```text
+acc = 1
+acc *= 4  -> 4
+acc *= 3  -> 12
+acc *= 2  -> 24
+acc *= 1  -> 24
+```
+
+The wrong version is:
+
+```c
+acc *= n;
+```
+
+because `n` stays the same for the whole loop. For `n = 4`, that would multiply by `4` repeatedly:
+
+```text
+1 * 4 * 4 * 4 * 4
+```
+
+That is not factorial. The changing loop variable is `i`, so use:
+
+```c
+acc *= i;
+```
+
+### Q92 - `e` approximation loop bounds
+
+**Question:** Write an `approximate_e(int terms)` loop using factorial terms, making sure the division is floating-point and the loop produces exactly `terms` terms.
+
+The series is:
+
+```text
+e = 1/0! + 1/1! + 1/2! + 1/3! + ...
+```
+
+If `terms` is the number of terms to include, loop while `n < terms`, not `n <= terms`.
+
+Using the previous `factorial` function:
+
+```c
+double approximate_e(int terms) {
+    double sum = 0.0;
+
+    for (int n = 0; n < terms; n++) {
+        sum += 1.0 / factorial(n);
+    }
+
+    return sum;
+}
+```
+
+The `1.0` matters because it forces floating-point division:
+
+```c
+1.0 / factorial(n)
+```
+
+If you write:
+
+```c
+1 / factorial(n)
+```
+
+then both operands are integers, so C performs integer division first. For terms such as `1 / 2`, `1 / 6`, and `1 / 24`, the result becomes `0`, which ruins the approximation.
+
+The loop condition matters too. For `terms = 5`, this loop:
+
+```c
+for (int n = 0; n < terms; n++)
+```
+
+uses:
+
+```text
+n = 0, 1, 2, 3, 4
+```
+
+That is exactly five terms. If you used `n <= terms`, you would get six terms.
+
+### Q93 - Object file compile and link workflow
+
+**Question:** For a program split across `main.c` and `maths.c`, write the commands that produce `main.o` and `maths.o`, then link them into an executable.
+
+Use `-c` to compile each source file into an object file without linking:
+
+```bash
+gcc -Wall -Wextra -std=c11 -c main.c
+gcc -Wall -Wextra -std=c11 -c maths.c
+```
+
+These commands produce:
+
+```text
+main.c  -> main.o
+maths.c -> maths.o
+```
+
+Then link the object files into an executable:
+
+```bash
+gcc -o app main.o maths.o
+```
+
+Then run it:
+
+```bash
+./app
+```
+
+The important idea is:
+
+```text
+.c file -> compile with -c -> .o file
+.o files -> link together -> executable program
+```
+
+So `maths.o` comes from compiling `maths.c`:
+
+```bash
+gcc -c maths.c
+```
+
+## C String Processing
+
+### Q94 - `sizeof` on char arrays
+
+**Question:** For `char s[20] = "Hello world";`, calculate the storage size and visible character count, then explain why the two numbers are different.
+
+For a real array, `sizeof` gives the total storage reserved for the whole array.
+
+```c
+char s[20] = "Hello world";
+```
+
+Here:
+
+```c
+sizeof(s)   /* 20 */
+strlen(s)   /* 11 */
+```
+
+`sizeof(s)` is `20` because `s` is an array with 20 bytes of storage. `strlen(s)` is `11` because it counts only the visible characters before the first null terminator.
+
+The stored string is:
+
+```text
+H e l l o   w o r l d \0
+```
+
+The array has extra unused space after that. The important rule is:
+
+```text
+sizeof = storage size
+strlen = characters before '\0'
+```
+
+### Q95 - Null terminator and `sizeof`
+
+**Question:** For `char s[20] = "Hello world"; s[0] = '\0';`, calculate `sizeof(s)` and `strlen(s)`, then identify which result changed.
+
+Changing the contents of the string can change `strlen`, but it does not change the size of the array.
+
+```c
+char s[20] = "Hello world";
+s[0] = '\0';
+```
+
+After this:
+
+```c
+sizeof(s)   /* still 20 */
+strlen(s)   /* now 0 */
+```
+
+`sizeof(s)` is still `20` because the array still has 20 bytes of storage. `strlen(s)` is `0` because the first character is now the null terminator, so the string appears empty.
+
+The key point is that `strlen` stops at the first `'\0'`; it does not care what old characters remain later in the array.
+
+### Q96 - In-place normalise write index
+
+**Question:** Trace what goes wrong if an in-place normalise loop increments `write` when punctuation is skipped, then write the corrected loop for `"A, B!"` and the required character-function include.
+
+For in-place filtering, `read` moves through every original character. `write` should move only when a character is kept.
+
+Wrong idea:
+
+```c
+if (isalpha(ch)) {
+    s[write++] = tolower(ch);
+} else {
+    write++;   /* wrong */
+}
+```
+
+That leaves gaps in the output because skipped punctuation still advances the write position. For `"A, B!"`, the comma, space, and exclamation mark should not reserve output positions.
+
+Correct version:
+
+```c
+#include <ctype.h>
+
+void normalise(char s[]) {
+    int write = 0;
+
+    for (int read = 0; s[read] != '\0'; read++) {
+        unsigned char ch = (unsigned char)s[read];
+
+        if (isalnum(ch)) {
+            s[write++] = (char)tolower(ch);
+        }
+    }
+
+    s[write] = '\0';
+}
+```
+
+For `"A, B!"`, the result is:
+
+```text
+ab
+```
+
+The required header is:
+
+```c
+#include <ctype.h>
+```
+
+because `isalnum` and `tolower` come from that header.
+
+### Q97 - Bounded copy loop limit
+
+**Question:** For `char dest[5]` copying from `"Hello"`, compare loop guards `i <= len - 1` and `i < len - 1`; choose the safe one and show where the null terminator is written.
+
+If `dest` has length 5, its valid indexes are:
+
+```text
+0 1 2 3 4
+```
+
+Index `4` must be saved for the null terminator.
+
+Safe version:
+
+```c
+void string_copy(char *dest, size_t len, const char *src) {
+    size_t i = 0;
+
+    if (len == 0) {
+        return;
+    }
+
+    while (i < len - 1 && src[i] != '\0') {
+        dest[i] = src[i];
+        i++;
+    }
+
+    dest[i] = '\0';
+}
+```
+
+For `len = 5`, this copies at most indexes `0`, `1`, `2`, and `3`, then writes:
+
+```c
+dest[4] = '\0';
+```
+
+The guard `i <= len - 1` is unsafe because it allows copying into index `len - 1`, leaving no space for the null terminator. The correct guard is:
+
+```c
+i < len - 1
+```
+
+or equivalently:
+
+```c
+i + 1 < len
+```
+
+## C++ Multiple Inheritance
+
+### Q98 - Protected member access in derived methods
+
+**Question:** Given a base class with private `i` and protected `j`, and a derived method containing `i = 0; j = 0;`, mark which assignment compiles and explain the access rule using the derived method context.
+
+`protected` means the member can be accessed inside the class that defines it and inside derived class member functions. `private` means only the class that defines it can access it directly.
+
+```cpp
+class Base {
+    int i;
+protected:
+    int j;
+};
+
+class Derived : public Base {
+public:
+    void reset() {
+        i = 0;  // error
+        j = 0;  // ok
+    }
+};
+```
+
+`j = 0;` compiles because `j` is protected in `Base`, so `Derived` member functions may use it.
+
+`i = 0;` does not compile because `i` is private in `Base`. A derived object still contains the base part, including private data, but derived code cannot directly name the private member.
+
+### Q99 - Diamond ambiguity is compile-time
+
+**Question:** For `Bottom` inheriting from both `Left` and `Right`, where each path contains `Base::value`, decide what happens to `b.value = 10;` and whether the issue is compile-time or runtime.
+
+In a non-virtual diamond, the bottom class contains two separate `Base` subobjects.
+
+```cpp
+class Base { public: int value; };
+class Left : public Base {};
+class Right : public Base {};
+class Bottom : public Left, public Right {};
+
+Bottom b;
+b.value = 10;   // error: ambiguous
+```
+
+The object layout is conceptually:
+
+```text
+Bottom
+- Left
+  - Base
+    - value
+- Right
+  - Base
+    - value
+```
+
+So `b.value` is ambiguous because the compiler cannot tell whether you mean the `value` through `Left` or the `value` through `Right`.
+
+This is a compile-time error. The compiler does not panic at runtime; the program is rejected before it runs.
+
+### Q100 - Selecting one diamond base path
+
+**Question:** In a non-virtual diamond with `Bottom b`, write the assignment that sets the `value` reached through `Left` rather than the one reached through `Right`.
+
+Use scope resolution to choose the path explicitly.
+
+```cpp
+class Base { public: int value; };
+class Left : public Base {};
+class Right : public Base {};
+class Bottom : public Left, public Right {};
+
+Bottom b;
+b.Left::value = 10;
+```
+
+That sets the `Base::value` inside the `Left` part of `Bottom`.
+
+This would set the other copy:
+
+```cpp
+b.Right::value = 10;
+```
+
+Scope resolution fixes the immediate ambiguity, but it does not remove the duplicated base subobjects. To remove the root cause, make the intermediate classes inherit the common base virtually:
+
+```cpp
+class Left : virtual public Base {};
+class Right : virtual public Base {};
+```
+
+### Q101 - Virtual dispatch trace
+
+**Question:** Given `Animal::speak` is virtual, `Dog::speak` prints `Bark Fido`, and an `Animal *` points at a `Dog`, trace the call through the base pointer and explain why the dog version runs.
+
+When a function is virtual, a call through a base pointer or reference is chosen using the actual object type at runtime.
+
+```cpp
+class Animal {
+public:
+    virtual void speak() const {
+        std::cout << "Animal\n";
+    }
+};
+
+class Dog : public Animal {
+public:
+    void speak() const override {
+        std::cout << "Bark Fido\n";
+    }
+};
+
+Dog pet;
+Animal *ptr = &pet;
+ptr->speak();
+```
+
+The pointer type is `Animal *`, but the actual object is a `Dog`. Because `speak` is virtual, the call runs:
+
+```cpp
+Dog::speak()
+```
+
+So the output is:
+
+```text
+Bark Fido
+```
+
+Without `virtual`, the call through `Animal *` would use the base-class version instead.
+
+### Q102 - Abstract base class instantiation
+
+**Question:** Given `virtual void speak() const = 0;` in `Animal`, decide whether `Animal a("Rex");` compiles, then show what a concrete derived class must provide before it can be instantiated.
+
+This declaration is a pure virtual function:
+
+```cpp
+virtual void speak() const = 0;
+```
+
+That makes `Animal` an abstract class. You cannot instantiate an abstract class directly:
+
+```cpp
+Animal a("Rex");  // error
+```
+
+A concrete derived class must override the pure virtual function:
+
+```cpp
+class Animal {
+public:
+    virtual void speak() const = 0;
+    virtual ~Animal() = default;
+};
+
+class Dog : public Animal {
+public:
+    void speak() const override {
+        std::cout << "Bark\n";
+    }
+};
+
+Dog d;  // ok
+```
+
+The key rule is:
+
+```text
+pure virtual function = base class can define an interface, but cannot be created directly
+```

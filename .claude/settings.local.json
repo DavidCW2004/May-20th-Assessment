@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\FoxyG\\\\PROJECTS\\\\May 20th Assessment\\\\topicsheets\" -File)",
+      "Bash(Select-Object Name, Length, CreationTime)",
+      "Bash(Sort-Object Name)",
+      "Bash(python make_c_string_processing_study_pack.py)",
+      "Bash(python make_cpp_multiple_inheritance_study_pack.py)"
+    ]
+  }
+}
