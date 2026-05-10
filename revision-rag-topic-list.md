@@ -34,7 +34,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | G | Custom string routines: `mystrlen`, `string_copy`, pointer-based string functions. | Related: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | A | Command-line arguments in C: `argc`, `argv`, quoting, `atoi`, `atof`. | Yes: [c-command-line-arguments-study-pack.pdf](topicsheets/c-command-line-arguments-study-pack.pdf) |
 | A | Multi-dimensional arrays and array-based simulations, including Game of Life style evolution. | Related: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
-| G | Struct-based exercises: points/rectangles, area tests, inside/outside checks. | No |
+| G | Struct-based exercises: points/rectangles, area tests, inside/outside checks. | Yes: [c-struct-exercises-study-pack.pdf](topicsheets/c-struct-exercises-study-pack.pdf) |
 | A | String-processing exercises: substitution/translation, palindrome detection, normalisation, `<ctype.h>` helpers such as `ispunct` and `tolower`. | Yes: [c-string-processing-study-pack.pdf](topicsheets/c-string-processing-study-pack.pdf) |
 | R | Pointer exercises: basic pointers, pointers with arrays, tricky pointers, pointer arithmetic. | Yes: [c-pointers-memory-study-pack.pdf](topicsheets/c-pointers-memory-study-pack.pdf) |
 | R | Generic low-level programming with `void *`: type-generic swap, comparison functions, generic merge sort. | Related: [c-function-pointers-callbacks-study-pack.pdf](topicsheets/c-function-pointers-callbacks-study-pack.pdf) |
@@ -53,11 +53,11 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | R | Templates and STL: macros vs templates, function templates, class templates, type safety, STL containers including `stack` and `vector`, iterators, `auto` with iterators. | Yes: [cpp-templates-stl-study-pack.pdf](topicsheets/cpp-templates-stl-study-pack.pdf) |
 | A | Error handling and lambdas: `try`/`catch`/`throw`, standard exceptions, good exception practice, lambda syntax, capture by value/reference. | Yes: [cpp-error-handling-lambdas-study-pack.pdf](topicsheets/cpp-error-handling-lambdas-study-pack.pdf) |
 | A | Access control details in inheritance: `private`, `protected`, `public`. | Related: [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
-| A | Why derived classes can access `protected` members but not `private` members. | No |
-| G | Getter/setter style access when direct member access is restricted. | No |
+| A | Why derived classes can access `protected` members but not `private` members. | Yes: [cpp-classes-access-headers-study-pack.pdf](topicsheets/cpp-classes-access-headers-study-pack.pdf) |
+| G | Getter/setter style access when direct member access is restricted. | Yes: [cpp-classes-access-headers-study-pack.pdf](topicsheets/cpp-classes-access-headers-study-pack.pdf) |
 | R | RAII vs manual `malloc`/`free`. | Related: [cpp-smart-pointers-unique-ptr-study-pack.pdf](topicsheets/cpp-smart-pointers-unique-ptr-study-pack.pdf) |
 | R | Smart-pointer ownership models in C++ vs Rust ownership/reference-counting. | Related: [cpp-smart-pointers-unique-ptr-study-pack.pdf](topicsheets/cpp-smart-pointers-unique-ptr-study-pack.pdf), [rust-ownership-borrowing-study-pack.pdf](topicsheets/rust-ownership-borrowing-study-pack.pdf) |
-| G | Splitting classes across header and source files. | No |
+| G | Splitting classes across header and source files. | Yes: [cpp-classes-access-headers-study-pack.pdf](topicsheets/cpp-classes-access-headers-study-pack.pdf) |
 | R | Reference parameters in practice, such as swapping values by reference. | Related: [cpp-templates-stl-study-pack.pdf](topicsheets/cpp-templates-stl-study-pack.pdf) |
 | R | Constructor/destructor tracing to understand object lifetime. | Related: [cpp-smart-pointers-unique-ptr-study-pack.pdf](topicsheets/cpp-smart-pointers-unique-ptr-study-pack.pdf), [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
 | R | Virtual functions and dynamic binding through base-class pointers. | Yes: [cpp-virtual-functions-dynamic-binding-study-pack.pdf](topicsheets/cpp-virtual-functions-dynamic-binding-study-pack.pdf) |
@@ -69,7 +69,7 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 
 | Status | Topic | Topic sheet created? |
 |---|---|---|
-| A | Tooling and motivation: why Rust, memory-safety goals, `rustc`, `cargo`, Rust Book/docs. | No |
+| A | Tooling and motivation: why Rust, memory-safety goals, `rustc`, `cargo`, Rust Book/docs. | Yes: [rust-tooling-cargo-study-pack.pdf](topicsheets/rust-tooling-cargo-study-pack.pdf) |
 | R | Crash-course basics: `let`, `mut`, shadowing, `const`, integer types, tuples, arrays, runtime bounds checks, printing. | Yes: [rust-crash-course-basics-study-pack.pdf](topicsheets/rust-crash-course-basics-study-pack.pdf) |
 | R | Ownership fundamentals: stack vs heap, `String`, moves, copies, drop, ownership rules, references and borrowing, mutable borrowing, dangling references. | Yes: [rust-ownership-borrowing-study-pack.pdf](topicsheets/rust-ownership-borrowing-study-pack.pdf) |
 | R | Borrowing and slices: references, `&[T]`, `&str`, `String` vs `&str`, avoiding dangling references. | Yes: [rust-ownership-borrowing-study-pack.pdf](topicsheets/rust-ownership-borrowing-study-pack.pdf) |
@@ -80,8 +80,8 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | R | Closures, iterators, and lifetimes: closure syntax/capture, `Fn`/`FnMut`/`FnOnce`, iterator pipelines, `map`, `filter`, `enumerate`, `zip`, `take`, `collect`, custom iterators, lifetime annotations, elision rules. | Related: [rust-ownership-borrowing-study-pack.pdf](topicsheets/rust-ownership-borrowing-study-pack.pdf) |
 | R | Rust move vs copy, and why iterator-based loops avoid C indexing errors. | Related: [rust-ownership-borrowing-study-pack.pdf](topicsheets/rust-ownership-borrowing-study-pack.pdf) |
 | R | Rust `?` as explicit error propagation without exceptions. | Yes: [rust-error-handling-file-io-study-pack.pdf](topicsheets/rust-error-handling-file-io-study-pack.pdf) |
-| A | Cargo workflow beyond `build`/`run`: `cargo check`, `cargo fmt`, `cargo clippy`, tests. | No |
-| G | Expressions vs statements, and how semicolons affect return values. | No |
+| A | Cargo workflow beyond `build`/`run`: `cargo check`, `cargo fmt`, `cargo clippy`, tests. | Yes: [rust-tooling-cargo-study-pack.pdf](topicsheets/rust-tooling-cargo-study-pack.pdf) |
+| G | Expressions vs statements, and how semicolons affect return values. | Yes: [rust-expressions-statements-study-pack.pdf](topicsheets/rust-expressions-statements-study-pack.pdf) |
 | R | Command-line input, parsing, and comparing `expect`, `match`, and `?`. | Related: [rust-error-handling-file-io-study-pack.pdf](topicsheets/rust-error-handling-file-io-study-pack.pdf) |
 | R | Array/slice processing, threshold-style scans, and tuple destructuring. | Related: [rust-ownership-borrowing-study-pack.pdf](topicsheets/rust-ownership-borrowing-study-pack.pdf), [rust-collections-data-modelling-study-pack.pdf](topicsheets/rust-collections-data-modelling-study-pack.pdf) |
 | R | `Option`, `Some`/`None`, `match`, and `if let` in small data-structure exercises. | Yes: [rust-collections-data-modelling-study-pack.pdf](topicsheets/rust-collections-data-modelling-study-pack.pdf) |
@@ -90,4 +90,3 @@ Topic sheet key: `Yes` = a focused sheet exists, `Related` = partly covered by a
 | R | Custom iterators and more involved iterator pipelines over `HashMap`/`Vec`. | Yes: [rust-custom-iterators-pipelines-study-pack.pdf](topicsheets/rust-custom-iterators-pipelines-study-pack.pdf) |
 | A | Smart pointers beyond the lecture slides: `Box<T>` and `Rc<T>`. | Related: [rust-error-handling-file-io-study-pack.pdf](topicsheets/rust-error-handling-file-io-study-pack.pdf) |
 | R | Concurrency topics: spawned threads, `move` closures, joining, `mpsc` channels, `Arc<T>`, `Mutex<T>`, poisoned mutex handling, parallel aggregation. | Yes: [rust-concurrency-parallelism-study-pack.pdf](topicsheets/rust-concurrency-parallelism-study-pack.pdf) |
-| A | Applied parallel exercises: Caesar cipher, league tables, word frequencies, Monte Carlo estimation, and bigram text models. | No |

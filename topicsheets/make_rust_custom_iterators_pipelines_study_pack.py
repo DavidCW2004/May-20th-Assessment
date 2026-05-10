@@ -85,7 +85,7 @@ def build():
             """
 let values = vec![1, 2, 3, 4];
 
-let doubled = values.iter().map(|n| n * 2);
+let doubled = values.iter().map(|n| *n * 2);
 let total: i32 = doubled.sum();
             """,
             styles,
@@ -137,7 +137,7 @@ let values = vec![1, 2, 3, 4, 5, 6];
 let result: Vec<i32> = values
     .iter()
     .filter(|n| **n % 2 == 0)
-    .map(|n| n * n)
+    .map(|n| *n * *n)
     .collect();
 
 // result is [4, 16, 36]
@@ -166,7 +166,7 @@ let values = vec![1, 2, 3, 4];
 
 let total: i32 = values.iter().sum();
 let big = values.iter().any(|n| *n > 3);
-let product = values.iter().fold(1, |acc, n| acc * n);
+let product = values.iter().fold(1, |acc, n| acc * *n);
             """,
             styles,
         ),
@@ -277,7 +277,7 @@ let values: Vec<u32> = Counter::new(4).collect();
         code(
             """
 let total: u32 = Counter::new(10)
-    .filter(|n| n % 2 == 0)
+    .filter(|n| *n % 2 == 0)
     .map(|n| n * n)
     .sum();
             """,
@@ -290,7 +290,7 @@ let total: u32 = Counter::new(10)
         p("Practice Questions", styles, "BlueHeading"),
         numbered(
             [
-                "Explain why <font face=\"Courier\">values.iter().map(|n| n * 2)</font> alone does not produce a vector.",
+                "Explain why <font face=\"Courier\">values.iter().map(|n| *n * 2)</font> alone does not produce a vector.",
                 "Choose <font face=\"Courier\">iter</font>, <font face=\"Courier\">iter_mut</font>, or <font face=\"Courier\">into_iter</font> for reading, modifying in place, and consuming a vector.",
                 "Write a pipeline that keeps even numbers from a vector and collects their squares into a new vector.",
                 "Use <font face=\"Courier\">fold</font> to multiply all numbers in a vector.",
@@ -310,8 +310,8 @@ let total: u32 = Counter::new(10)
             [
                 "<font face=\"Courier\">map</font> is lazy and returns another iterator. Use a consumer such as <font face=\"Courier\">collect</font>, <font face=\"Courier\">sum</font>, or a <font face=\"Courier\">for</font> loop to run it.",
                 "Use <font face=\"Courier\">iter</font> for shared reads, <font face=\"Courier\">iter_mut</font> for in-place mutation, and <font face=\"Courier\">into_iter</font> when consuming owned values.",
-                "Expected pattern: <font face=\"Courier\">values.iter().filter(|n| **n % 2 == 0).map(|n| n * n).collect::&lt;Vec&lt;_&gt;&gt;()</font>.",
-                "Expected pattern: <font face=\"Courier\">values.iter().fold(1, |acc, n| acc * n)</font>.",
+                "Expected pattern: <font face=\"Courier\">values.iter().filter(|n| **n % 2 == 0).map(|n| *n * *n).collect::&lt;Vec&lt;_&gt;&gt;()</font>.",
+                "Expected pattern: <font face=\"Courier\">values.iter().fold(1, |acc, n| acc * *n)</font>.",
                 "Expected stages: <font face=\"Courier\">split_whitespace</font>, <font face=\"Courier\">map</font> to lower-case or clean, then <font face=\"Courier\">collect</font>.",
                 "Expected: iterate with <font face=\"Courier\">map.iter()</font>, filter by score, and collect copied or cloned key-value pairs into a vector.",
                 "Expected fields include current position and end limit, such as <font face=\"Courier\">current: u32</font> and <font face=\"Courier\">end: u32</font>.",

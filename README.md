@@ -12,6 +12,7 @@
 ## Topic Sheet Notes
 
 - Topic sheet content must be grounded in the actual course slides and worksheets in `slides/` and `worksheet/`. Read the relevant PDFs before writing questions or explanations — do not rely solely on general knowledge of the topic.
+- Match the slide language to the sheet's language. Do not pull C-specific content (e.g. `gcc`, `extern`/`static` storage classes from L10) into a C++ sheet, or vice versa. C++ sheets must use `g++` for compilation, `.cpp`/`.hpp` extensions, and source from C++ slides (cppIntro, L09, L11–L17). Audit every command and keyword for language correctness before regenerating.
 - When making a new topic sheet, check existing topic sheets first and put genuinely relevant material into an existing related sheet if that avoids unnecessary duplication.
 - If a RAG item is broad enough to need its own focused sheet, create both the ReportLab generator script and the generated PDF in `topicsheets/`.
 - Each topic sheet must include exactly 10 practice questions.
