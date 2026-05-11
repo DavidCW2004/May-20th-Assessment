@@ -4,14 +4,8 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
-from reportlab.platypus import (
-    ListFlowable,
-    ListItem,
-    PageBreak,
-    Paragraph,
-    Preformatted,
-    SimpleDocTemplate,
-)
+from reportlab.platypus import ListFlowable, ListItem, PageBreak, Paragraph, Preformatted, SimpleDocTemplate
+
 
 OUT = Path(__file__).with_name("cpp-classes-access-headers-study-pack.pdf")
 
@@ -23,7 +17,7 @@ def make_styles():
     styles.add(ParagraphStyle("SourceText", parent=styles["Normal"], fontSize=8, leading=10, textColor=colors.HexColor("#4b5563"), spaceAfter=6))
     styles.add(ParagraphStyle("BlueHeading", parent=styles["Heading2"], fontSize=14, leading=17, textColor=colors.HexColor("#1d4ed8"), spaceBefore=8, spaceAfter=4))
     styles.add(ParagraphStyle("DarkHeading", parent=styles["Heading3"], fontSize=11, leading=13, textColor=colors.HexColor("#111827"), spaceBefore=6, spaceAfter=3))
-    styles.add(ParagraphStyle("CodeBlock", parent=styles["Code"], fontName="Courier", fontSize=7.3, leading=9.0, backColor=colors.HexColor("#f3f4f6"), borderColor=colors.HexColor("#d1d5db"), borderWidth=0.4, borderPadding=4, spaceAfter=7))
+    styles.add(ParagraphStyle("CodeBlock", parent=styles["Code"], fontName="Courier", fontSize=7.25, leading=8.8, backColor=colors.HexColor("#f3f4f6"), borderColor=colors.HexColor("#d1d5db"), borderWidth=0.4, borderPadding=4, spaceAfter=7))
     return styles
 
 
@@ -35,133 +29,99 @@ def code(text, styles):
     return Preformatted(text.strip("\n"), styles["CodeBlock"], maxLineLength=88)
 
 
-def bullets(items, styles):
-    return ListFlowable(
-        [ListItem(p(item, styles), leftIndent=4 * mm) for item in items],
-        bulletType="bullet", leftIndent=6 * mm, bulletFontName="Helvetica", bulletFontSize=7,
-    )
-
-
 def numbered(items, styles, start=1):
     return ListFlowable(
         [ListItem(p(item, styles), leftIndent=5 * mm) for item in items],
-        bulletType="1", leftIndent=7 * mm, bulletFontName="Helvetica-Bold", bulletFontSize=8, start=start,
+        bulletType="1",
+        leftIndent=7 * mm,
+        bulletFontName="Helvetica-Bold",
+        bulletFontSize=8,
+        start=start,
     )
 
 
 def build():
     styles = make_styles()
     doc = SimpleDocTemplate(
-        str(OUT), pagesize=A4,
-        leftMargin=18 * mm, rightMargin=18 * mm, topMargin=15 * mm, bottomMargin=15 * mm,
-        title="C++ Classes: Access Control and Header Files Study Pack",
+        str(OUT),
+        pagesize=A4,
+        leftMargin=18 * mm,
+        rightMargin=18 * mm,
+        topMargin=15 * mm,
+        bottomMargin=15 * mm,
+        title="C++ Classes, Headers, and Object Lifetime Study Pack",
     )
 
     story = [
-        p("C++ Classes: Access Control and Header Files", styles, "TopicTitle"),
+        p("C++ Classes, Headers, and Object Lifetime", styles, "TopicTitle"),
         p(
-            "Based on ECM2433 L12 Classes, cppIntro, and L13 Memory slides. "
-            "Covers private vs protected access, getters and setters, the this pointer, "
-            "splitting classes across .h/.hpp and .cpp files, include guards, and "
-            "separate compilation with g++.",
-            styles, "SourceText",
+            "Merged sheet based on ECM2433 L12 Classes and L13 Memory, Pointers, and "
+            "References. It combines access control, headers, constructors, destructors, "
+            "copying, member initializer lists, and g++ compilation.",
+            styles,
+            "SourceText",
         ),
         p("What You Need To Know", styles, "BlueHeading"),
-
-        p("1. private, protected, and public", styles, "DarkHeading"),
+        p("1. Access control and encapsulation", styles, "DarkHeading"),
         p(
-            "The key distinction from L12: "
-            "<font face=\"Courier\">private</font> members are accessible only within the class itself. "
-            "<font face=\"Courier\">protected</font> members are accessible within the class "
-            "<b>and</b> within any derived class, but not from outside code. "
-            "<font face=\"Courier\">public</font> members are accessible by anyone. "
-            "A <font face=\"Courier\">class</font> defaults to private; "
-            "a <font face=\"Courier\">struct</font> defaults to public.",
+            "<font face=\"Courier\">private</font> members are only accessible inside the "
+            "class. <font face=\"Courier\">protected</font> members are also accessible "
+            "inside derived classes. <font face=\"Courier\">public</font> members are "
+            "available to outside code. A <font face=\"Courier\">class</font> defaults "
+            "to private; a <font face=\"Courier\">struct</font> defaults to public.",
             styles,
         ),
         code(
             """
-class Base {
-    int i;          /* private: only Base's own functions */
-protected:
-    int j;          /* protected: Base + derived classes */
+class Account {
+    double balance;
 public:
-    void set(int a, int b) { i = a; j = b; }
-    void show() { printf("i=%d, j=%d\\n", i, j); }
-};
-
-class Derived : public Base {
-    int k;
-public:
-    Derived(int x) { k = x; j = 0; }  /* j OK: protected */
-    void showAll() { show(); }          /* show() OK: public */
-    /* i = 5;  would be ERROR: private to Base */
-};
-
-int main() {
-    Derived d(3);
-    d.set(1, 2);   /* OK: public */
-    d.show();      /* OK: public */
-    /* d.j = 5;   ERROR: protected, not accessible from main */
-}
-            """,
-            styles,
-        ),
-
-        p("2. Getters and setters", styles, "DarkHeading"),
-        p(
-            "When a member is private, external code cannot access it directly. "
-            "Provide a public <b>getter</b> to read it and a public <b>setter</b> to write it. "
-            "The setter can validate input before applying it.",
-            styles,
-        ),
-        code(
-            """
-class Temperature {
-    double celsius;
-public:
-    double get_celsius() const { return celsius; }
-    void set_celsius(double c) {
-        if (c < -273.15) return;   /* reject impossible value */
-        celsius = c;
+    double get_balance() const { return balance; }
+    void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+        }
     }
 };
             """,
             styles,
         ),
-
-        p("3. The this pointer", styles, "DarkHeading"),
+        p("2. this and member initializer lists", styles, "DarkHeading"),
         p(
             "<font face=\"Courier\">this</font> is a pointer to the current object. "
-            "It is used to disambiguate when a constructor parameter has the same name as "
-            "a member variable.",
+            "Use it when a parameter shadows a member name. A member initializer list "
+            "initializes members and base classes before the constructor body runs.",
             styles,
         ),
         code(
             """
-class NewClass {
-    int a, b;
+class Box {
+    int width;
 public:
-    NewClass(int a, int b) {
-        this->a = a;   /* this->a: member; a: parameter */
-        this->b = b;
-    }
+    Box(int width) : width(width) {}
+    int get_width() const { return width; }
+};
+
+class TemperatureSensor : public Sensor {
+    double celsius;
+public:
+    TemperatureSensor(int id, const std::string& name, double celsius)
+        : Sensor(id, name), celsius(celsius) {}
 };
             """,
             styles,
         ),
-
-        p("4. Splitting a class across .h and .cpp", styles, "DarkHeading"),
+        p("3. Headers and source files", styles, "DarkHeading"),
         p(
-            "The header file declares the class (what it has). "
-            "The .cpp file defines the member functions (what they do), "
-            "using the scope-resolution operator <font face=\"Courier\">::</font> "
-            "to name the class they belong to.",
+            "A header declares the class. A <font face=\"Courier\">.cpp</font> file "
+            "defines member functions using the scope-resolution prefix, such as "
+            "<font face=\"Courier\">Counter::increment</font>. Include guards prevent "
+            "the same declarations being processed twice.",
             styles,
         ),
         code(
             """
-/* --- counter.h --- */
+/* counter.h */
 #ifndef COUNTER_H
 #define COUNTER_H
 
@@ -175,221 +135,154 @@ public:
 
 #endif
 
-/* --- counter.cpp --- */
+/* counter.cpp */
 #include "counter.h"
 
-Counter::Counter() { count = 0; }
-
+Counter::Counter() : count(0) {}
 void Counter::increment() { count++; }
-
 int Counter::get_count() const { return count; }
             """,
             styles,
         ),
-
-        p("5. Include guards", styles, "DarkHeading"),
+        p("4. Constructors, copy constructors, and destructors", styles, "DarkHeading"),
         p(
-            "If a header is included twice in the same translation unit "
-            "(e.g., via two different headers both including the same file), "
-            "the contents are processed twice and structures are defined twice — "
-            "a compile error. An include guard prevents this.",
+            "A constructor initializes an object. A copy constructor builds a new object "
+            "from an existing object. A destructor runs when an object is destroyed. "
+            "If a class owns a raw resource, copying and destruction must be designed "
+            "carefully; otherwise prefer RAII types such as <font face=\"Courier\">std::string</font> "
+            "or smart pointers.",
             styles,
         ),
         code(
             """
-#ifndef STACK_H
-#define STACK_H
-
-/* content of stack.h */
-
-#endif
+class Trace {
+public:
+    Trace() { std::cout << "ctor\\n"; }
+    Trace(const Trace&) { std::cout << "copy\\n"; }
+    ~Trace() { std::cout << "dtor\\n"; }
+};
             """,
             styles,
         ),
-
-        p("6. Separate compilation and linking with g++", styles, "DarkHeading"),
-        p(
-            "Only the essentials are repeated here: compile each "
-            "<font face=\"Courier\">.cpp</font> file to a "
-            "<font face=\"Courier\">.o</font> object file with "
-            "<font face=\"Courier\">g++</font>, then link the object files into the "
-            "final executable. The "
-            "<font face=\"Courier\">-std=c++17</font> flag selects the language standard.",
-            styles,
-        ),
+        p("5. Compiling multiple C++ files", styles, "DarkHeading"),
         code(
             """
-$ g++ -std=c++17 -c counter.cpp -o counter.o
-$ g++ -std=c++17 -c main.cpp    -o main.o
-$ g++ main.o counter.o -o myprogram
+g++ -std=c++17 -c counter.cpp -o counter.o
+g++ -std=c++17 -c main.cpp -o main.o
+g++ main.o counter.o -o app
             """,
             styles,
         ),
         p(
-            "C++ headers may use the <font face=\"Courier\">.h</font> extension or "
-            "<font face=\"Courier\">.hpp</font> (some libraries such as Boost prefer "
-            "<font face=\"Courier\">.hpp</font>).",
+            "A pointer to a class member uses the class in the pointer type, for example "
+            "<font face=\"Courier\">int Sensor::* field = &#38;Sensor::id;</font>. "
+            "For an object <font face=\"Courier\">s</font>, access it with "
+            "<font face=\"Courier\">s.*field</font>.",
             styles,
         ),
-
         p("Practice Questions", styles, "BlueHeading"),
         numbered(
             [
-                "Write the <font face=\"Courier\">counter.h</font> class declaration for "
-                "a <font face=\"Courier\">Counter</font> with private "
-                "<font face=\"Courier\">int count</font> and public "
-                "<font face=\"Courier\">Counter()</font>, "
-                "<font face=\"Courier\">void increment()</font>, and "
-                "<font face=\"Courier\">int get_count() const</font>.",
-                "In <font face=\"Courier\">counter.cpp</font>, why must the function "
-                "definition be written as "
-                "<font face=\"Courier\">void Counter::increment()</font> rather than just "
-                "<font face=\"Courier\">void increment()</font>?",
+                "Write a guarded <font face=\"Courier\">counter.h</font> declaration for a <font face=\"Courier\">Counter</font> class with private <font face=\"Courier\">int count</font>, a default constructor, <font face=\"Courier\">increment</font>, and <font face=\"Courier\">get_count</font>.",
+                "In <font face=\"Courier\">counter.cpp</font>, define <font face=\"Courier\">increment</font>. Make sure you use the required class prefix.",
             ],
             styles,
         ),
-        p("Question 3 — fix the naming conflict:", styles),
+        p("Question 3 - access control:", styles),
+        code(
+            """
+class Base {
+private:
+    int x;
+protected:
+    int y;
+public:
+    int z;
+};
+            """,
+            styles,
+        ),
+        numbered(["Which of <font face=\"Courier\">x</font>, <font face=\"Courier\">y</font>, and <font face=\"Courier\">z</font> can outside code access? Which can a derived class access?"], styles, start=3),
+        p("Question 4 - complete the setter:", styles),
+        code(
+            """
+class User {
+    int age;
+public:
+    void set_age(int age) {
+        /* reject negative ages, otherwise store the age */
+    }
+};
+            """,
+            styles,
+        ),
+        numbered(["Complete <font face=\"Courier\">set_age</font>. Use <font face=\"Courier\">this</font> if needed."], styles, start=4),
+        p("Question 5 - fix the constructor bug:", styles),
         code(
             """
 class Box {
     int width;
 public:
     Box(int width) {
-        width = width;   /* bug: assigns parameter to itself */
+        width = width;
     }
 };
             """,
             styles,
         ),
+        numbered(["Explain the bug and fix it using either <font face=\"Courier\">this</font> or an initializer list."], styles, start=5),
         numbered(
             [
-                "Explain the bug and rewrite the constructor body using "
-                "<font face=\"Courier\">this</font> to fix it.",
-                "Write a getter <font face=\"Courier\">get_age() const</font> and a setter "
-                "<font face=\"Courier\">set_age(int)</font> for a private "
-                "<font face=\"Courier\">int age</font> member. The setter must reject "
-                "negative values.",
-                "Write the complete include guard for a header file called "
-                "<font face=\"Courier\">sensor.h</font>.",
+                "Write a constructor for <font face=\"Courier\">TemperatureSensor</font> that initializes the base <font face=\"Courier\">Sensor(id, name)</font> and member <font face=\"Courier\">celsius</font>.",
             ],
-            styles, start=3,
+            styles,
+            start=6,
         ),
-        p("Question 6 — this program does not compile:", styles),
+        p("Question 7 - trace object lifetime:", styles),
         code(
             """
-/* grandparent.h */
-struct Data { int x; };
-
-/* parent.h */
-#include "grandparent.h"
-
-/* child.cpp */
-#include "parent.h"
-#include "grandparent.h"   /* included again */
-int main() { return 0; }
+int main() {
+    Trace a;
+    Trace b = a;
+}
             """,
             styles,
         ),
-        numbered(
-            [
-                "Explain the compile error and show what to add to "
-                "<font face=\"Courier\">grandparent.h</font> to fix it.",
-                "Given a class <font face=\"Courier\">Counter</font> declared in "
-                "<font face=\"Courier\">counter.h</font> with a private "
-                "<font face=\"Courier\">int count</font> and public "
-                "<font face=\"Courier\">Counter()</font>, "
-                "<font face=\"Courier\">void increment()</font>, and "
-                "<font face=\"Courier\">int get_count() const</font>, "
-                "write the <font face=\"Courier\">counter.cpp</font> file that implements "
-                "all three using the <font face=\"Courier\">::</font> operator.",
-                "State the three g++ commands needed to compile "
-                "<font face=\"Courier\">counter.cpp</font> and "
-                "<font face=\"Courier\">main.cpp</font> (both including counter.h) "
-                "into an executable called <font face=\"Courier\">myprogram</font>, "
-                "using the C++17 standard.",
-            ],
-            styles, start=6,
-        ),
-        p("Question 9 — the destructor is missing:", styles),
+        numbered(["Identify where construction, copy construction, and destruction happen in <font face=\"Courier\">main</font>."], styles, start=7),
+        p("Question 8 - copy constructor signature:", styles),
         code(
             """
 class Buffer {
-    char *data;
 public:
-    Buffer(int size) { data = new char[size]; }
-    /* destructor missing */
+    Buffer(const Buffer other) {}
 };
             """,
             styles,
         ),
+        numbered(["Fix the copy constructor parameter type and explain why it should be a const reference."], styles, start=8),
         numbered(
             [
-                "Write the correct destructor for <font face=\"Courier\">Buffer</font>. "
-                "Explain what happens if it is omitted.",
-                "What is the key difference between C's "
-                "<font face=\"Courier\">malloc</font> and C++'s "
-                "<font face=\"Courier\">new</font> when allocating an object of a class? "
-                "What about <font face=\"Courier\">free</font> vs "
-                "<font face=\"Courier\">delete</font>?",
+                "A class only contains <font face=\"Courier\">std::string name;</font>. Is <font face=\"Courier\">~Thing() = default;</font> normally acceptable? Explain.",
+                "Write the three <font face=\"Courier\">g++</font> commands to compile <font face=\"Courier\">counter.cpp</font> and <font face=\"Courier\">main.cpp</font> separately, then link them into <font face=\"Courier\">app</font>.",
             ],
-            styles, start=9,
+            styles,
+            start=9,
         ),
-
         PageBreak(),
         p("Mark Scheme", styles, "TopicTitle"),
         p("Attempt all questions before checking.", styles, "SourceText"),
         numbered(
             [
-                "Expected header shape: "
-                "<font face=\"Courier\">#ifndef COUNTER_H</font> / "
-                "<font face=\"Courier\">#define COUNTER_H</font> / "
-                "<font face=\"Courier\">class Counter { int count; public: "
-                "Counter(); void increment(); int get_count() const; };</font> / "
-                "<font face=\"Courier\">#endif</font>.",
-
-                "<font face=\"Courier\">Counter::increment</font> says the function is "
-                "the member function declared inside <font face=\"Courier\">Counter</font>. "
-                "Without the scope-resolution prefix, the compiler sees a separate free "
-                "function named <font face=\"Courier\">increment</font>.",
-
-                "The bug: <font face=\"Courier\">width = width</font> assigns the parameter "
-                "to itself; the member is never set. "
-                "Fix: <font face=\"Courier\">this-&#62;width = width;</font>",
-
-                "<font face=\"Courier\">int get_age() const { return age; }</font> and "
-                "<font face=\"Courier\">void set_age(int a) { if (a &gt;= 0) age = a; }</font>",
-
-                "<font face=\"Courier\">#ifndef SENSOR_H</font> / "
-                "<font face=\"Courier\">#define SENSOR_H</font> / "
-                "... header content ... / "
-                "<font face=\"Courier\">#endif</font>",
-
-                "The error is a redefinition of <font face=\"Courier\">struct Data</font> "
-                "because grandparent.h is processed twice. "
-                "Fix: add an include guard to grandparent.h: "
-                "<font face=\"Courier\">#ifndef GRANDPARENT_H</font> / "
-                "<font face=\"Courier\">#define GRANDPARENT_H</font> / content / "
-                "<font face=\"Courier\">#endif</font>",
-
-                "counter.cpp: <font face=\"Courier\">#include \"counter.h\"</font>. "
-                "Then: "
-                "<font face=\"Courier\">Counter::Counter() { count = 0; }</font> / "
-                "<font face=\"Courier\">void Counter::increment() { count++; }</font> / "
-                "<font face=\"Courier\">int Counter::get_count() const { return count; }</font>",
-
-                "<font face=\"Courier\">g++ -std=c++17 -c counter.cpp -o counter.o</font> then "
-                "<font face=\"Courier\">g++ -std=c++17 -c main.cpp -o main.o</font> then "
-                "<font face=\"Courier\">g++ main.o counter.o -o myprogram</font>. "
-                "Use g++ rather than gcc so the C++ standard library is linked correctly.",
-
-                "<font face=\"Courier\">~Buffer() { delete[] data; }</font>. "
-                "Without it, the heap memory allocated in the constructor is never freed "
-                "(memory leak) every time a Buffer goes out of scope.",
-
-                "malloc allocates raw memory without calling any constructor. "
-                "new allocates memory then calls the constructor. "
-                "free releases memory without calling the destructor. "
-                "delete calls the destructor then deallocates memory.",
+                "Use <font face=\"Courier\">#ifndef COUNTER_H</font>, <font face=\"Courier\">#define COUNTER_H</font>, the class declaration, and <font face=\"Courier\">#endif</font>. Members before <font face=\"Courier\">public:</font> are private.",
+                "<font face=\"Courier\">void Counter::increment() { count++; }</font>. The <font face=\"Courier\">Counter::</font> prefix says this is the class member function.",
+                "Outside code can access only <font face=\"Courier\">z</font>. A derived class can access <font face=\"Courier\">y</font> and <font face=\"Courier\">z</font>, but not private <font face=\"Courier\">x</font>.",
+                "Expected: <font face=\"Courier\">if (age &lt; 0) return; this-&#62;age = age;</font>",
+                "<font face=\"Courier\">width = width</font> assigns the parameter to itself. Fix with <font face=\"Courier\">Box(int width) : width(width) {}</font> or <font face=\"Courier\">this-&#62;width = width;</font>.",
+                "<font face=\"Courier\">TemperatureSensor(int id, const std::string&#38; name, double celsius) : Sensor(id, name), celsius(celsius) {}</font>",
+                "<font face=\"Courier\">Trace a;</font> calls the default constructor. <font face=\"Courier\">Trace b = a;</font> calls the copy constructor. Destructors run for <font face=\"Courier\">b</font> then <font face=\"Courier\">a</font> at the end of main.",
+                "Use <font face=\"Courier\">Buffer(const Buffer&#38; other)</font>. Passing by value would require copying before entering the copy constructor, causing recursion and unnecessary copying.",
+                "Yes, normally. <font face=\"Courier\">std::string</font> cleans itself up through RAII, so a default destructor is enough unless the class owns some manual resource.",
+                "<font face=\"Courier\">g++ -std=c++17 -c counter.cpp -o counter.o</font>; <font face=\"Courier\">g++ -std=c++17 -c main.cpp -o main.o</font>; <font face=\"Courier\">g++ main.o counter.o -o app</font>.",
             ],
             styles,
         ),

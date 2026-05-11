@@ -11,8 +11,8 @@
 
 ## Topic Sheet Notes
 
-- Topic sheet content must be grounded in the actual course slides and worksheets in `slides/` and `worksheet/`. Read the relevant PDFs before writing questions or explanations — do not rely solely on general knowledge of the topic.
-- Match the slide language to the sheet's language. Do not pull C-specific content (e.g. `gcc`, `extern`/`static` storage classes from L10) into a C++ sheet, or vice versa. C++ sheets must use `g++` for compilation, `.cpp`/`.hpp` extensions, and source from C++ slides (cppIntro, L09, L11–L17). Audit every command and keyword for language correctness before regenerating.
+- Topic sheet content must be grounded in the actual course slides and worksheets in `slides/` and `worksheet/`. Read the relevant PDFs before writing questions or explanations - do not rely solely on general knowledge of the topic.
+- Match the slide language to the sheet's language. Do not pull C-specific content (e.g. `gcc`, `extern`/`static` storage classes from L10) into a C++ sheet, or vice versa. C++ sheets must use `g++` for compilation, `.cpp`/`.hpp` extensions, and source from C++ slides (cppIntro, L09, L11-L17). Audit every command and keyword for language correctness before regenerating.
 - When making a new topic sheet, check existing topic sheets first and put genuinely relevant material into an existing related sheet if that avoids unnecessary duplication.
 - If a RAG item is broad enough to need its own focused sheet, create both the ReportLab generator script and the generated PDF in `topicsheets/`.
 - Each topic sheet must include exactly 10 practice questions.
@@ -21,3 +21,16 @@
 - Do not write questions that test memory of a specific function or exercise from the worksheets or CA. Questions should test general knowledge of the language, not whether the student remembers what a particular past exercise asked them to implement.
 - Include a mark scheme after the practice questions, and make sure every practice question has a corresponding answer.
 - Update `revision-rag-topic-list.md` when a new topic sheet is created, changing the relevant row to `Yes:` with a link to the PDF.
+
+## Mock Exam Paper Notes
+
+- Mock exam papers must be grounded in the course slides, worksheets, topic sheets, and current RAG weaknesses.
+- Do not reuse worksheet, CA, topic-sheet, or sample-paper questions directly. Questions may be inspired by those materials, but they must change the context, data, wording, or required reasoning so the paper tests understanding rather than recall of a seen question.
+- Format mock papers like `mock-exams/ECM2433-sample-answers.pdf` for overall structure and exam style.
+- Put all answers and mark schemes at the end of the paper, not throughout the question section.
+- Any question that asks the student to inspect, fix, trace, or complete code must include the corresponding code snippet in the paper.
+- Mock exam questions should test application and problem-solving. Avoid prompts that tell the student exactly what to include or only ask them to restate a rule.
+- Include a clear answer or mark scheme for every question.
+- Save generated mock exam files in `mock-exams/`.
+- After completing a worksheet, work through every question again and check whether your answer matches the official answer sheet.
+- If your answer does not match, record the missed rule or reasoning step in the revision mistake log.

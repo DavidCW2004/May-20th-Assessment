@@ -17,7 +17,7 @@ def make_styles():
     styles.add(ParagraphStyle("SourceText", parent=styles["Normal"], fontSize=8, leading=10, textColor=colors.HexColor("#4b5563"), spaceAfter=6))
     styles.add(ParagraphStyle("BlueHeading", parent=styles["Heading2"], fontSize=14, leading=17, textColor=colors.HexColor("#1d4ed8"), spaceBefore=8, spaceAfter=4))
     styles.add(ParagraphStyle("DarkHeading", parent=styles["Heading3"], fontSize=11, leading=13, textColor=colors.HexColor("#111827"), spaceBefore=6, spaceAfter=3))
-    styles.add(ParagraphStyle("CodeBlock", parent=styles["Code"], fontName="Courier", fontSize=7.3, leading=9.0, backColor=colors.HexColor("#f3f4f6"), borderColor=colors.HexColor("#d1d5db"), borderWidth=0.4, borderPadding=4, spaceAfter=7))
+    styles.add(ParagraphStyle("CodeBlock", parent=styles["Code"], fontName="Courier", fontSize=7.25, leading=8.8, backColor=colors.HexColor("#f3f4f6"), borderColor=colors.HexColor("#d1d5db"), borderWidth=0.4, borderPadding=4, spaceAfter=7))
     return styles
 
 
@@ -29,122 +29,187 @@ def code(text, styles):
     return Preformatted(text.strip("\n"), styles["CodeBlock"], maxLineLength=88)
 
 
-def bullets(items, styles):
-    return ListFlowable([ListItem(p(item, styles), leftIndent=4 * mm) for item in items], bulletType="bullet", leftIndent=6 * mm, bulletFontName="Helvetica", bulletFontSize=7)
-
-
-def numbered(items, styles):
-    return ListFlowable([ListItem(p(item, styles), leftIndent=5 * mm) for item in items], bulletType="1", leftIndent=7 * mm, bulletFontName="Helvetica-Bold", bulletFontSize=8)
+def numbered(items, styles, start=1):
+    return ListFlowable(
+        [ListItem(p(item, styles), leftIndent=5 * mm) for item in items],
+        bulletType="1",
+        leftIndent=7 * mm,
+        bulletFontName="Helvetica-Bold",
+        bulletFontSize=8,
+        start=start,
+    )
 
 
 def build():
     styles = make_styles()
-    doc = SimpleDocTemplate(str(OUT), pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm, topMargin=15 * mm, bottomMargin=15 * mm, title="C Pointers and Memory Study Pack")
+    doc = SimpleDocTemplate(
+        str(OUT),
+        pagesize=A4,
+        leftMargin=18 * mm,
+        rightMargin=18 * mm,
+        topMargin=15 * mm,
+        bottomMargin=15 * mm,
+        title="C Pointers, Arrays, and Generic Memory Study Pack",
+    )
 
     story = [
-        p("C Pointers and Memory", styles, "TopicTitle"),
-        p("Based on ECM2433 pointer, arrays/strings, functions-with-pointers, and dynamic-memory material.", styles, "SourceText"),
-        p("Description: What You Need To Know", styles, "BlueHeading"),
-        p("1. Pointers store addresses", styles, "DarkHeading"),
-        p("The address-of operator produces an address. A pointer stores an address. Dereferencing a pointer accesses the object at that address.", styles),
-        code("""
-int x = 4;
-int *p = &x;
-*p = 9;
-printf("%d\\n", x);  /* 9 */
-        """, styles),
-        p("2. Arrays, strings, and bounds", styles, "DarkHeading"),
-        p("Arrays are contiguous memory. C does not reliably stop out-of-bounds access. A C string is a char array ending with a null terminator.", styles),
-        code("""
-char s[] = "Hello";  /* H e l l o \\0 */
-printf("%zu\\n", sizeof s);  /* 6 for this array */
-printf("%zu\\n", strlen(s)); /* 5 visible characters */
-        """, styles),
-        p("3. Passing pointers to functions", styles, "DarkHeading"),
-        p("C passes arguments by value. To update the caller's object, pass its address and write through the pointer.", styles),
-        code("""
-void update_integer(int *p) {
+        p("C Pointers, Arrays, and Generic Memory", styles, "TopicTitle"),
+        p(
+            "Merged sheet based on ECM2433 arrays/strings, functions with pointers, "
+            "dynamic memory, 2D arrays, pointer arithmetic, and generic void-pointer "
+            "programming material.",
+            styles,
+            "SourceText",
+        ),
+        p("What You Need To Know", styles, "BlueHeading"),
+        p("1. Pointers, dereferencing, and caller updates", styles, "DarkHeading"),
+        p(
+            "A pointer stores an address. The address-of operator gets an address; "
+            "dereferencing accesses the object at that address. C passes arguments by "
+            "value, so a function updates the caller's variable by receiving a pointer.",
+            styles,
+        ),
+        code(
+            """
+void set_to_42(int *p) {
     *p = 42;
 }
 
 int value = 5;
-update_integer(&value);
-        """, styles),
-        p("4. Dynamic memory", styles, "DarkHeading"),
-        p("Use malloc for heap allocation, check for NULL, stay within bounds, and free each successful allocation exactly once.", styles),
-        code("""
+set_to_42(&value);
+            """,
+            styles,
+        ),
+        p("2. Arrays, strings, and allocation", styles, "DarkHeading"),
+        p(
+            "Arrays are contiguous. A C string is a character array ending in "
+            "<font face=\"Courier\">'\\0'</font>. Dynamic memory from "
+            "<font face=\"Courier\">malloc</font> must be checked and later freed.",
+            styles,
+        ),
+        code(
+            """
+char s[] = "Hello";
+printf("%zu\\n", sizeof s);   /* 6: includes '\\0' */
+printf("%zu\\n", strlen(s));  /* 5: visible characters */
+
 int *a = malloc(n * sizeof *a);
 if (a == NULL) {
     return 1;
 }
-
-for (int i = 0; i < n; i++) {
-    a[i] = i + 1;
-}
-
 free(a);
-a = NULL;
-        """, styles),
-        p("5. Common memory bugs", styles, "DarkHeading"),
-        bullets([
-            "Wild pointer: using a pointer that was never initialised.",
-            "Dangling pointer: using a pointer after the object it pointed at no longer exists.",
-            "Double-free: freeing the same allocation twice.",
-            "Memory leak: losing the last pointer to allocated memory before freeing it.",
-            "Out-of-bounds access: reading or writing outside the valid range.",
-        ], styles),
-        p("Practice Questions", styles, "BlueHeading"),
-        numbered([
-            "In the code <font face=\"Courier\">int x = 4; int *p = &#38;x;</font>, identify the value, the address of <font face=\"Courier\">x</font>, the pointer value, and the dereferenced value.",
-            "Predict the output after <font face=\"Courier\">*p = *p + 3</font> when <font face=\"Courier\">p</font> points at <font face=\"Courier\">x</font> and <font face=\"Courier\">x</font> starts at 4.",
-            "Write a function that sets a caller-owned integer to 42 through a pointer parameter.",
-            "Write a pointer-based integer swap function.",
-            "For <font face=\"Courier\">char s[20] = \"Hello\";</font>, compare <font face=\"Courier\">sizeof s</font> and <font face=\"Courier\">strlen(s)</font>.",
-            "Explain why writing <font face=\"Courier\">array[15]</font> is unsafe when an array has 10 elements.",
-            "Write code that allocates <font face=\"Courier\">n</font> integers, checks allocation, fills them, and frees them.",
-            "Explain the bug in <font face=\"Courier\">char *p; strcpy(p, \"Hello\");</font> and give a safe fix.",
-            "Outline the allocation and cleanup pattern for a dynamic 2D array using <font face=\"Courier\">int **X</font>.",
-            "Classify these bugs: use after free, double free, forgotten free, and dereferencing an uninitialised pointer.",
-        ], styles),
-        PageBreak(),
-        p("Mark Scheme", styles, "TopicTitle"),
-        p("Use this after attempting the questions. Correct reasoning matters as much as final code.", styles, "SourceText"),
-        numbered([
-            "<font face=\"Courier\">x</font> is the integer object; the address of <font face=\"Courier\">x</font> is produced with the address-of operator; <font face=\"Courier\">p</font> stores that address; <font face=\"Courier\">*p</font> is the integer stored there.",
-            "The output is <font face=\"Courier\">7</font>. The pointer refers to <font face=\"Courier\">x</font>, so assigning through it changes <font face=\"Courier\">x</font>.",
-            "Expected pattern: <font face=\"Courier\">void update_integer(int *p) { *p = 42; }</font>, called by passing the address of the caller's variable.",
-            "Expected body: <font face=\"Courier\">int tmp = *p; *p = *q; *q = tmp;</font>.",
-            "<font face=\"Courier\">sizeof s</font> is 20 bytes for the whole array. <font face=\"Courier\">strlen(s)</font> is 5 because it counts visible characters before the null terminator.",
-            "It writes outside the valid range. The behaviour is undefined: it may corrupt memory, crash, or appear to work.",
-            "Use <font face=\"Courier\">malloc(n * sizeof *a)</font>, check for <font face=\"Courier\">NULL</font>, loop over valid indexes, then <font face=\"Courier\">free(a)</font>.",
-            "The pointer is uninitialised and does not point at writable storage. Safe fixes include a large enough char array or allocated storage with a NULL check.",
-            "Allocate the row-pointer array, allocate each row, clean up earlier rows if a later row fails, then free rows and finally the row-pointer array.",
-            "Use-after-free/dangling pointer; double-free; memory leak; wild pointer or undefined behaviour.",
-        ], styles),
-        p("Useful 2D Cleanup Pattern", styles, "BlueHeading"),
-        code("""
-int **X = malloc(R * sizeof *X);
-if (X == NULL) {
-    return 1;
-}
-
-for (int r = 0; r < R; r++) {
-    X[r] = malloc(C * sizeof *X[r]);
-    if (X[r] == NULL) {
-        for (int i = 0; i < r; i++) {
-            free(X[i]);
+            """,
+            styles,
+        ),
+        p("3. 2D arrays and simulations", styles, "DarkHeading"),
+        p(
+            "A true 2D array parameter needs the column count in the type. A dynamically "
+            "allocated <font face=\"Courier\">int **</font> grid uses one allocation for "
+            "the row pointers and one allocation per row. Clean up earlier rows if a later "
+            "allocation fails.",
+            styles,
+        ),
+        code(
+            """
+void print_grid(int rows, int cols, int grid[rows][cols]) {
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+            printf("%d ", grid[r][c]);
         }
-        free(X);
-        return 1;
+        printf("\\n");
     }
 }
-
-for (int r = 0; r < R; r++) {
-    free(X[r]);
+            """,
+            styles,
+        ),
+        p("4. Generic memory with void pointers", styles, "DarkHeading"),
+        p(
+            "<font face=\"Courier\">void *</font> can point at data of any object type, "
+            "but it has no element size. Generic algorithms usually receive an element "
+            "size and a comparison function. Cast to <font face=\"Courier\">char *</font> "
+            "for byte-wise pointer arithmetic.",
+            styles,
+        ),
+        code(
+            """
+void swap_bytes(void *a, void *b, size_t size) {
+    char *pa = a;
+    char *pb = b;
+    for (size_t i = 0; i < size; i++) {
+        char tmp = pa[i];
+        pa[i] = pb[i];
+        pb[i] = tmp;
+    }
 }
-free(X);
-        """, styles),
+            """,
+            styles,
+        ),
+        p("Practice Questions", styles, "BlueHeading"),
+        numbered(
+            [
+                "In <font face=\"Courier\">int x = 4; int *p = &#38;x;</font>, identify the stored integer, the address expression, the pointer value, and the dereferenced value.",
+                "Write a function that sets a caller-owned integer to 42 through a pointer parameter.",
+                "Write a pointer-based integer swap function.",
+                "For <font face=\"Courier\">char s[20] = \"Hello\";</font>, compare <font face=\"Courier\">sizeof s</font> and <font face=\"Courier\">strlen(s)</font>.",
+                "Write code that allocates <font face=\"Courier\">n</font> integers, checks the allocation, fills them with <font face=\"Courier\">0..n-1</font>, and frees them.",
+            ],
+            styles,
+        ),
+        p("Question 6 - explain the stale pointer:", styles),
+        code(
+            """
+int *p = malloc(sizeof *p);
+*p = 7;
+free(p);
+return *p;
+            """,
+            styles,
+        ),
+        numbered(["Explain why the final dereference is invalid and name the kind of behaviour C gives."], styles, start=6),
+        p("Question 7 - complete manual string duplication:", styles),
+        code(
+            """
+char *duplicate(const char *src) {
+    char *copy = malloc(/* size here */);
+    if (copy == NULL) {
+        return NULL;
+    }
+    /* copy the string */
+    return copy;
+}
+            """,
+            styles,
+        ),
+        numbered(["Complete the allocation size and copy operation."], styles, start=7),
+        numbered(
+            [
+                "Write the function header for a function that receives a 2D automatic array with <font face=\"Courier\">rows</font> and <font face=\"Courier\">cols</font> known at runtime.",
+                "In a Game-of-Life style update, why should you write the next generation into a separate grid instead of changing the current grid in place?",
+                "Write the key pointer-arithmetic expression for the address of element <font face=\"Courier\">i</font> in a generic array with base pointer <font face=\"Courier\">base</font> and element size <font face=\"Courier\">size</font>.",
+            ],
+            styles,
+            start=8,
+        ),
+        PageBreak(),
+        p("Mark Scheme", styles, "TopicTitle"),
+        p("Attempt all questions before checking.", styles, "SourceText"),
+        numbered(
+            [
+                "<font face=\"Courier\">x</font> is the integer object. <font face=\"Courier\">&#38;x</font> is its address. <font face=\"Courier\">p</font> stores that address. <font face=\"Courier\">*p</font> is the integer stored there.",
+                "<font face=\"Courier\">void set_to_42(int *p) { *p = 42; }</font>, called with <font face=\"Courier\">set_to_42(&#38;value);</font>",
+                "<font face=\"Courier\">void swap(int *a, int *b) { int tmp = *a; *a = *b; *b = tmp; }</font>",
+                "<font face=\"Courier\">sizeof s</font> is 20 because it is the whole array. <font face=\"Courier\">strlen(s)</font> is 5 because it stops before the null terminator.",
+                "Expected pattern: <font face=\"Courier\">int *a = malloc(n * sizeof *a); if (a == NULL) return 1; for (...) a[i] = i; free(a);</font>",
+                "After <font face=\"Courier\">free(p)</font>, the allocation no longer belongs to the program. <font face=\"Courier\">p</font> is stale/dangling, and <font face=\"Courier\">*p</font> is undefined behaviour.",
+                "Use <font face=\"Courier\">malloc(strlen(src) + 1)</font>, check for <font face=\"Courier\">NULL</font>, then <font face=\"Courier\">strcpy(copy, src);</font>.",
+                "<font face=\"Courier\">void f(int rows, int cols, int grid[rows][cols])</font>",
+                "If you update in place, later cells may read already-changed neighbour values. A separate next grid keeps all decisions based on the original generation.",
+                "<font face=\"Courier\">(char *)base + i * size</font>. Cast to <font face=\"Courier\">char *</font> because char pointer arithmetic advances one byte at a time.",
+            ],
+            styles,
+        ),
     ]
+
     doc.build(story)
 
 

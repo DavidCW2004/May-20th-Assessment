@@ -2840,3 +2840,582 @@ The key rule is:
 ```text
 pure virtual function = base class can define an interface, but cannot be created directly
 ```
+
+## C++ Classes: Access Control and Header Files
+
+### Q103 - Complete guarded class header
+
+**Question:** A header `counter.h` declares a `Counter` class and may be included through several files. Write the complete guarded header around the class declaration so repeated inclusion is safe.
+
+Use an include guard around the whole header contents. The guard name is usually based on the header filename.
+
+```cpp
+#ifndef COUNTER_H
+#define COUNTER_H
+
+class Counter {
+private:
+    int count;
+public:
+    Counter();
+    void increment();
+    int value() const;
+};
+
+#endif /* COUNTER_H */
+```
+
+The first include defines `COUNTER_H`. If the same header is included again in the same translation unit, the `#ifndef` fails and the class declaration is skipped. This prevents repeated class definitions.
+
+### Q104 - Scope resolution for member definitions
+
+**Question:** In `counter.cpp`, fix `void increment() { count++; }` so it defines the member declared in `Counter`, then explain what the prefix connects the function body to.
+
+Outside the class body, a member function definition needs the class name and scope-resolution operator:
+
+```cpp
+void Counter::increment() {
+    count++;
+}
+```
+
+`Counter::` tells the compiler that this function body belongs to the `Counter` class. Without the prefix, this would define a separate free function called `increment`, not the class member. A free function would also not have direct access to the private member `count`.
+
+### Q105 - Balanced include guard
+
+**Question:** Complete a guarded `sensor.h` header from the opening conditional directive through the final closing directive, using a sensible guard name.
+
+The guard needs an opening `#ifndef`, a matching `#define`, and a final `#endif`.
+
+```cpp
+#ifndef SENSOR_H
+#define SENSOR_H
+
+class Sensor {
+public:
+    double read() const;
+};
+
+#endif /* SENSOR_H */
+```
+
+A common mistake is to write the opening lines but forget the closing `#endif`. The guarded region must cover the declarations in the header.
+
+### Q106 - Repeated include redefinition fix
+
+**Question:** `grandparent.h` defines `struct Data` and is included both directly and through `parent.h`. Wrap `grandparent.h` so `child.cpp` does not see two definitions.
+
+Put the include guard in the header that is being included more than once:
+
+```cpp
+#ifndef GRANDPARENT_H
+#define GRANDPARENT_H
+
+struct Data {
+    int value;
+};
+
+#endif /* GRANDPARENT_H */
+```
+
+If `child.cpp` includes `grandparent.h` directly and also gets it through `parent.h`, the first include defines `GRANDPARENT_H`. The second include then skips the guarded contents, so `struct Data` is only seen once.
+
+### Q107 - Destructor for owned array
+
+**Question:** Given `class Buffer { char *data; public: Buffer(int size) { data = new char[size]; } };`, add the destructor and explain why a default destructor is not enough.
+
+The class owns a dynamic array, so the destructor must release it with `delete[]`.
+
+```cpp
+class Buffer {
+    char *data;
+public:
+    Buffer(int size) {
+        data = new char[size];
+    }
+
+    ~Buffer() {
+        delete[] data;
+    }
+};
+```
+
+The default destructor would destroy the pointer variable itself, but it would not delete the heap array that the pointer points to. That would leak memory.
+
+For a real owning class, also think about copying: if copying is allowed, you need proper copy behavior or deleted copy operations to avoid double deletion.
+
+### Q108 - `new`/`delete` vs `malloc`/`free` for objects
+
+**Question:** For a class with a constructor and destructor, compare allocation with `new` and `malloc`, then compare cleanup with `delete` and `free`; say which operations run object lifetime code.
+
+`new` allocates storage and runs the constructor:
+
+```cpp
+Widget *w = new Widget(5);
+```
+
+`delete` runs the destructor and releases the storage:
+
+```cpp
+delete w;
+```
+
+`malloc` only allocates raw bytes. It does not run a C++ constructor:
+
+```cpp
+Widget *w = static_cast<Widget *>(std::malloc(sizeof(Widget))); // raw storage only
+```
+
+`free` releases raw storage. It does not run a destructor.
+
+So for normal C++ objects, use `new`/`delete` or, better, RAII containers/smart pointers. Do not allocate an object with `new` and clean it with `free`, and do not allocate with `malloc` then clean with `delete`.
+
+## C Struct Exercises: Points and Rectangles
+
+### Q109 - Semicolons in struct field declarations
+
+**Question:** Repair `typedef struct { double x double y } Point;` so it is a valid C type definition, then declare one `Point` variable.
+
+Each field declaration needs a semicolon, and the whole typedef declaration also ends with a semicolon.
+
+```c
+typedef struct {
+    double x;
+    double y;
+} Point;
+
+Point pt;
+```
+
+The final `Point` is the typedef alias. It lets you write `Point pt;` instead of `struct ...` syntax.
+
+### Q110 - Nested struct field semicolons
+
+**Question:** Write a `Rectangle` type containing `Point bottom_left` and `Point top_right`, making sure the field declarations and the whole type definition are correctly terminated.
+
+A struct can contain fields whose type is another struct type. Each field still needs its own semicolon.
+
+```c
+typedef struct {
+    Point bottom_left;
+    Point top_right;
+} Rectangle;
+```
+
+The semicolon after `top_right` ends that field declaration. The semicolon after `} Rectangle` ends the typedef declaration.
+
+### Q111 - Updating caller-owned struct through pointer
+
+**Question:** Fix `void move_point(Point p, double dx, double dy)` so the caller's point is changed, then show the corrected call for a variable named `pt`.
+
+Passing a struct by value gives the function a copy. Changing that copy does not change the caller's original variable.
+
+Broken version:
+
+```c
+void move_point(Point p, double dx, double dy) {
+    p.x += dx;
+    p.y += dy;
+}
+```
+
+For the C worksheet version, pass a pointer to the caller's object and use `->`:
+
+```c
+void move_point(Point *p, double dx, double dy) {
+    p->x += dx;
+    p->y += dy;
+}
+
+Point pt = {1.0, 2.0};
+move_point(&pt, dx, dy);
+```
+
+`&pt` passes the address of the caller's variable. Inside the function, `p->x` accesses the `x` field of the pointed-to `Point`.
+
+### Q112 - Choosing pass-by-value for structs
+
+**Question:** A function only reads a small `Point` to calculate a result and must not modify the caller's value. Choose a by-value or pointer parameter and justify the choice.
+
+Passing by value is reasonable for a small read-only struct such as:
+
+```c
+typedef struct {
+    double x;
+    double y;
+} Point;
+```
+
+Example:
+
+```c
+double distance_sq(Point a, Point b) {
+    double dx = a.x - b.x;
+    double dy = a.y - b.y;
+    return dx * dx + dy * dy;
+}
+```
+
+The function only reads the points, and copying two `double` fields is simple. Passing by value also prevents the function from accidentally modifying the caller's objects.
+
+Use a pointer when the function needs to modify the caller's struct or when copying a large struct would be wasteful.
+
+### Q113 - Struct size, padding, and alignment
+
+**Question:** Compare `sizeof` for a two-double `Point` with a struct containing `char c; double x;`. Explain why the mixed-field struct may be larger than the simple sum of field sizes.
+
+A two-double `Point` is typically 16 bytes on a system where `sizeof(double)` is 8:
+
+```c
+typedef struct {
+    double x;
+    double y;
+} Point;
+```
+
+```text
+sizeof(Point) is typically 16
+```
+
+A mixed-field struct can be larger than the simple sum of its fields because the compiler may insert padding for alignment:
+
+```c
+typedef struct {
+    char c;
+    double x;
+} Mixed;
+```
+
+The fields themselves might total 1 + 8 = 9 bytes, but the struct may be 16 bytes because padding is inserted between `c` and `x`, and possibly at the end, so the `double` is correctly aligned.
+
+## Rust Tooling and Cargo
+
+### Q114 - Cargo as build tool and package manager
+
+**Question:** A Rust project uses Cargo where a C project might need separate build and dependency tools. Name the two jobs Cargo handles and give one command or file connected to each job.
+
+Cargo is both a build system and a package manager.
+
+As a build system, it compiles, checks, runs, and tests the project:
+
+```bash
+cargo check
+cargo build
+cargo run
+cargo test
+```
+
+As a package manager, it reads dependency information from `Cargo.toml` and records exact resolved versions in `Cargo.lock`.
+
+```toml
+[dependencies]
+rand = "0.9"
+```
+
+So the two jobs are:
+
+- build system: commands such as `cargo build`, `cargo run`, `cargo test`
+- package manager: dependency configuration in `Cargo.toml` and locked versions in `Cargo.lock`
+
+### Q115 - `cargo new` project layout
+
+**Question:** After running `cargo new hello_rust`, list the generated source entry point path and the main Cargo config files, then say which file contains the starting `main` function.
+
+A basic binary project looks like this:
+
+```text
+hello_rust/
+  Cargo.toml
+  Cargo.lock        # may appear after building/resolving dependencies
+  src/
+    main.rs
+```
+
+The starting `main` function is in:
+
+```text
+src/main.rs
+```
+
+`Cargo.toml` stores the package name, version, edition, and dependencies. `Cargo.lock` records exact dependency versions once generated.
+
+### Q116 - `cargo run` with unchanged source
+
+**Question:** After a successful build, no source files have changed. Explain what `cargo run` does next and whether it recompiles or runs the existing binary.
+
+`cargo run` checks whether the project is up to date. If no relevant source files or dependencies have changed, Cargo does not need to recompile the crate.
+
+It runs the existing binary from the target directory, usually under:
+
+```text
+target/debug/
+```
+
+If a source file, dependency, or build setting has changed, Cargo rebuilds what is needed before running.
+
+### Q117 - Opening Rust Book offline
+
+**Question:** On a machine with Rust docs installed but no internet connection, write the command that opens the Rust Book and distinguish it from opening the general local Rust documentation.
+
+To open the Rust Book directly:
+
+```bash
+rustup doc --book
+```
+
+To open the broader local Rust documentation:
+
+```bash
+rustup doc
+```
+
+The `--book` flag targets the Rust Book specifically. Without it, `rustup doc` opens the general installed documentation index.
+
+## Rust Ownership, Closures, Lifetimes, and Smart Pointers
+
+### Q118 - Closure capture mode for copied values
+
+**Question:** Given `let factor = 3; let scale = |n: i32| n * factor;` and then a `move` version of the same closure, explain how `factor` is captured in each case and whether the original `factor` can still be printed.
+
+Without `move`, the closure can borrow `factor` from the surrounding scope because it only needs to read it:
+
+```rust
+let factor = 3;
+let scale = |n: i32| n * factor;
+println!("{}", scale(4));
+println!("{factor}");
+```
+
+With `move`, the closure captures `factor` by value:
+
+```rust
+let factor = 3;
+let scale = move |n: i32| n * factor;
+println!("{}", scale(4));
+println!("{factor}");
+```
+
+This still allows printing the original `factor` because `i32` is `Copy`. The moved value is copied into the closure. If `factor` were a non-`Copy` type such as `String`, a `move` closure could move ownership into the closure and the original binding might no longer be usable.
+
+### Q119 - Returning owned data or input borrows
+
+**Question:** Given `fn bad() -> &str { let text = String::from("hello"); &text }`, explain why the returned reference is invalid, then rewrite it once by returning an owned `String` and once by returning a reference to input data.
+
+This is invalid:
+
+```rust
+fn bad() -> &str {
+    let text = String::from("hello");
+    &text
+}
+```
+
+`text` is local to the function and is dropped when the function returns. Returning `&text` would leave the caller with a dangling reference, so Rust rejects it.
+
+Return owned data instead:
+
+```rust
+fn good_owned() -> String {
+    String::from("hello")
+}
+```
+
+Or return a reference to input data that outlives the function call:
+
+```rust
+fn good_borrowed(text: &str) -> &str {
+    text
+}
+```
+
+The borrowed version is valid because the returned reference points into data owned by the caller, not into a local variable that is about to be dropped.
+
+### Q120 - Dereferencing a borrowed Box
+
+**Question:** Complete `fn read_boxed(n: &Box<i32>) -> i32` so it returns the inner integer, then explain what each dereference step is doing.
+
+A `Box<i32>` owns an `i32` on the heap. A `&Box<i32>` is a reference to that box. To read the integer, dereference twice:
+
+```rust
+fn read_boxed(n: &Box<i32>) -> i32 {
+    **n
+}
+```
+
+The first dereference follows the `&Box<i32>` to the `Box<i32>`. The second dereference follows the `Box<i32>` to the inner `i32` on the heap. Returning the `i32` is fine because `i32` is `Copy`.
+
+## Rust Practical Projects and Data
+
+### Q121 - Unit test module shape
+
+**Question:** Inside `src/lib.rs`, write the unit test module for `pub fn square(n: i32) -> i32 { n * n }`, importing the parent module correctly and ending the assertion statement properly.
+
+Unit tests beside the code can use `super::*` to import items from the parent module.
+
+```rust
+pub fn square(n: i32) -> i32 {
+    n * n
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn square_works() {
+        assert_eq!(square(5), 25);
+    }
+}
+```
+
+The `assert_eq!` line is a statement, so it ends with a semicolon.
+
+### Q122 - Integration tests use public API
+
+**Question:** Given a private `helper` used by public `public_api`, explain why `tests/basic.rs` cannot import `helper`, then write the valid import and assertion against the public function.
+
+Integration tests in `tests/` are compiled like outside crates. They can only use the crate's public API.
+
+If the library is:
+
+```rust
+fn helper(n: i32) -> i32 {
+    n + 1
+}
+
+pub fn public_api(n: i32) -> i32 {
+    helper(n)
+}
+```
+
+Then `tests/basic.rs` should test through the public function:
+
+```rust
+use calc::public_api;
+
+#[test]
+fn public_api_works() {
+    assert_eq!(public_api(4), 5);
+}
+```
+
+Do not import `helper` from an integration test unless it is intentionally made `pub` as part of the public API.
+
+### Q123 - Command-line argument positions
+
+**Question:** For `cargo run -- 12 2.5`, label `args[0]`, `args[1]`, and `args[2]`, including what kind of value `args[0]` usually contains.
+
+`std::env::args()` gives strings. For:
+
+```bash
+cargo run -- 12 2.5
+```
+
+The program usually sees:
+
+```text
+args[0] = path/name of the program, such as target/debug/app
+args[1] = "12"
+args[2] = "2.5"
+```
+
+All of these are `String` values. The numeric-looking arguments still need parsing before they can be used as numbers.
+
+### Q124 - Parse error handling with `match`
+
+**Question:** Replace `let count: i32 = args[1].parse().unwrap();` with a `match` that uses the parsed value on success and prints an error before returning on invalid input.
+
+Avoid `unwrap()` when invalid input should be handled gracefully.
+
+```rust
+let count: i32 = match args[1].parse() {
+    Ok(n) => n,
+    Err(_) => {
+        eprintln!("invalid count");
+        return;
+    }
+};
+```
+
+The `Ok(n)` arm gives the parsed integer. The `Err(_)` arm handles any parse error, prints a message, and returns early from the current function.
+
+### Q125 - Parse target type syntax
+
+**Question:** Complete `let n = text.trim().____?;` inside `parse_count` so the parse target is `i32` and the surrounding `Result` can return parse errors early.
+
+Use turbofish syntax to state the parse target type:
+
+```rust
+pub fn parse_count(text: &str) -> Result<i32, std::num::ParseIntError> {
+    let n = text.trim().parse::<i32>()?;
+    Ok(n)
+}
+```
+
+`parse::<i32>()` tells Rust which type to parse. The `?` returns the parse error early if parsing fails.
+
+### Q126 - Accumulating totals in a `HashMap`
+
+**Question:** A totals map already contains `tea -> 2.50`. Given another tea item with quantity 3 and unit price 1.25, write the update so the stored tea total becomes 6.25 rather than being replaced or ignored.
+
+Use the `entry` API to get a mutable reference to the existing total, inserting `0.0` only if the key is missing.
+
+```rust
+*totals.entry(item.name.clone()).or_insert(0.0) +=
+    item.quantity as f64 * item.unit_price;
+```
+
+For the given numbers, the new line total is:
+
+```text
+3 * 1.25 = 3.75
+```
+
+The old total was `2.50`, so the updated total is:
+
+```text
+2.50 + 3.75 = 6.25
+```
+
+The dereference `*` is needed because `or_insert` returns a mutable reference to the value stored in the map.
+
+### Q127 - Dereferencing iterator values
+
+**Question:** In `for (index, value) in values.iter().enumerate()`, complete the comparison that returns `Some(index)` when the borrowed value is greater than `threshold`.
+
+`values.iter()` yields references to the values, so `value` is a borrowed integer. Dereference it before comparing with `threshold`:
+
+```rust
+pub fn first_greater_than(values: &[i32], threshold: i32) -> Option<usize> {
+    for (index, value) in values.iter().enumerate() {
+        if *value > threshold {
+            return Some(index);
+        }
+    }
+
+    None
+}
+```
+
+`index` comes from `enumerate()`. `Some(index)` is returned for the first matching value. If no value matches, the function returns `None` after the loop.
+
+### Q128 - Tuple destructuring from borrowed iteration
+
+**Question:** Given `for (name, score) in rows.iter()`, explain what `(name, score)` pulls out and why those bindings are references rather than owned values.
+
+If `rows` is a vector of tuples, `rows.iter()` borrows each tuple rather than moving it out of the vector.
+
+```rust
+let rows = vec![
+    (String::from("red"), 10),
+    (String::from("blue"), 7),
+];
+
+for (name, score) in rows.iter() {
+    println!("{name}: {score}");
+}
+```
+
+The pattern `(name, score)` destructures each tuple into its two fields. Because the loop is over `rows.iter()`, those fields are borrowed. So `name` is a reference to the `String`, and `score` is a reference to the integer.
+
+This avoids taking ownership of the values out of `rows`, so `rows` can still be used after the loop.
