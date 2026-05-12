@@ -24,7 +24,7 @@
 
 ## Mock Exam Paper Notes
 
-- Mock exam papers must be grounded in the course slides, worksheets, topic sheets, and current RAG weaknesses.
+- Mock exam paper topics must come from the RAG revision, course slides, worksheets, and topic sheets.
 - Do not reuse worksheet, CA, topic-sheet, or sample-paper questions directly. Questions may be inspired by those materials, but they must change the context, data, wording, or required reasoning so the paper tests understanding rather than recall of a seen question.
 - Format mock papers like `mock-exams/ECM2433-sample-answers.pdf` for overall structure and exam style.
 - Put all answers and mark schemes at the end of the paper, not throughout the question section.
@@ -32,5 +32,5 @@
 - Mock exam questions should test application and problem-solving. Avoid prompts that tell the student exactly what to include or only ask them to restate a rule.
 - Include a clear answer or mark scheme for every question.
 - Save generated mock exam files in `mock-exams/`.
-- After completing a worksheet, work through every question again and check whether your answer matches the official answer sheet.
-- If your answer does not match, record the missed rule or reasoning step in the revision mistake log.
+- After generating a mock exam paper, ChatGPT/Codex must check every question and answer against the relevant course material and the generated mark scheme.
+- If a question is ambiguous, missing required code, not grounded in the course material, duplicated from an existing worksheet/CA/topic sheet, or has an incorrect/incomplete answer, ChatGPT/Codex must fix the paper before reporting it as complete.

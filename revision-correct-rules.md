@@ -3419,3 +3419,368 @@ for (name, score) in rows.iter() {
 The pattern `(name, score)` destructures each tuple into its two fields. Because the loop is over `rows.iter()`, those fields are borrowed. So `name` is a reference to the `String`, and `score` is a reference to the integer.
 
 This avoids taking ownership of the values out of `rows`, so `rows` can still be used after the loop.
+
+## C++ Build Systems, STL Algorithms, and Shared Ownership
+
+### Q129 - CMake role vs compiler role
+
+**Question:** Given `cmake -S . -B build` followed by `cmake --build build`, explain what CMake configures or drives, and whether the actual compile/link work is still done by compiler tools such as `g++`.
+
+CMake is a build-system generator and build driver. It is not the C++ compiler itself.
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+The first command reads the project files from the current source directory and creates build files in the `build` directory. The second command asks the generated build system to build the project.
+
+The actual compiling and linking is still done by compiler/linker tools, such as `g++`, underneath the build system.
+
+### Q130 - `binary_search` requires matching sorted order
+
+**Question:** Given `std::vector<int> values = {8, 2, 5, 1};` followed by `std::binary_search(values.begin(), values.end(), 5)`, add the minimum fix for the default search and explain why a descending sort comparator would not match that default search.
+
+`std::binary_search` only works correctly when the range is already sorted using the same ordering that the search expects.
+
+With the default `binary_search`, sort ascending first:
+
+```cpp
+std::vector<int> values = {8, 2, 5, 1};
+
+std::sort(values.begin(), values.end());
+bool found = std::binary_search(values.begin(), values.end(), 5);
+```
+
+Do not add a descending comparator here unless the `binary_search` call uses the same comparator too. This would be inconsistent:
+
+```cpp
+std::sort(values.begin(), values.end(), [](int a, int b) {
+    return a > b;
+});
+
+bool found = std::binary_search(values.begin(), values.end(), 5);
+```
+
+The vector is sorted descending, but the search still assumes the default ascending order.
+
+### Q131 - Descending `std::sort` comparator direction
+
+**Question:** Complete a `std::sort` comparator for largest-first integer scores, then explain what the comparator's true result means about the order of its two arguments.
+
+For descending order, the comparator should return `true` when the first value should come before the second value.
+
+```cpp
+std::vector<int> scores = {4, 10, 7};
+
+std::sort(scores.begin(), scores.end(), [](int a, int b) {
+    return a > b;
+});
+```
+
+`a > b` means the larger value comes first, so the sorted result is:
+
+```text
+10, 7, 4
+```
+
+Using `a < b` would sort ascending instead:
+
+```text
+4, 7, 10
+```
+
+## C Builds, Libraries, and Buffering
+
+### Q132 - Flushing buffered stdout
+
+**Question:** Given `printf("A"); printf("B"); fflush(stdout); printf("C\n");`, explain what `fflush(stdout)` forces to happen before the newline is printed.
+
+`printf` writes to the `stdout` stream, but that stream may buffer output before it appears on the terminal.
+
+```c
+printf("A");
+printf("B");
+fflush(stdout);
+printf("C\n");
+```
+
+`fflush(stdout)` forces any pending buffered `stdout` output to be written immediately. In this fragment, it forces `A` and `B` out before the later `printf("C\n")`.
+
+Without the flush, `A` and `B` might wait until a newline, a full buffer, or program exit.
+
+### Q133 - Makefile object compile rule
+
+**Question:** Complete the Makefile command for `stack.o: stack.c stack.h`, using the compiler, C standard flag, compile-only step, source file, and named object output.
+
+The rule is for building one object file from one C source file:
+
+```make
+stack.o: stack.c stack.h
+	$(CC) $(CFLAGS) -c stack.c -o stack.o
+```
+
+If the variables are:
+
+```make
+CC = gcc
+CFLAGS = -std=c99
+```
+
+then the command expands to:
+
+```bash
+gcc -std=c99 -c stack.c -o stack.o
+```
+
+`-c` means compile only and stop before linking. `-o stack.o` names the object-file output.
+
+### Q134 - Recompile one source and reuse object file
+
+**Question:** Given `stack.o` already exists, `main.c` changed, and `stack.c` did not change, write the commands that recompile only `main.c` into `main.o` and then link with the existing `stack.o`.
+
+Only `main.c` needs recompiling:
+
+```bash
+gcc -std=c99 -c main.c -o main.o
+```
+
+Then link the fresh `main.o` with the existing `stack.o`:
+
+```bash
+gcc main.o stack.o -o program
+```
+
+Do not recompile `stack.c` if `stack.o` is already up to date. The `-c` flag is needed on the compile step because you are producing an object file, not the final executable yet.
+
+### Q135 - Recompile objects then relink executable
+
+**Question:** Given `program` depends on `main.o` and `stack.o`, and both object files depend on `stack.h`, explain exactly what happens to the two object files and to `program` after `stack.h` changes.
+
+For this dependency graph:
+
+```make
+program: main.o stack.o
+main.o: main.c stack.h
+stack.o: stack.c stack.h
+```
+
+If `stack.h` changes, both object files are out of date because both list `stack.h` as a prerequisite.
+
+So `make` recompiles:
+
+```text
+main.c  -> main.o
+stack.c -> stack.o
+```
+
+Then `program` is **relinked**:
+
+```bash
+gcc main.o stack.o -o program
+```
+
+The final step is specifically linking again, not recompiling `program.c`. `program` is the executable made from object files.
+
+### Q136 - Make target already up to date
+
+**Question:** Given `make: 'program' is up to date`, explain what this says about whether `program` exists and how its timestamp compares with the files it depends on.
+
+This message means `make` found no work to do for that target.
+
+For example:
+
+```make
+program: main.o stack.o
+	gcc main.o stack.o -o program
+```
+
+If `program` exists and is newer than, or the same age as, `main.o` and `stack.o`, then none of its prerequisites have changed since it was built.
+
+So `make` does not run the link command again.
+
+If one prerequisite becomes newer than `program`, such as after recompiling `main.o`, then `program` is out of date and must be relinked.
+
+### Q137 - Makefile clean command
+
+**Question:** Write a `clean` recipe command that removes all `.o` files and the `program` executable, then explain what `-f` and `*.o` do.
+
+A typical clean rule is:
+
+```make
+clean:
+	rm -f *.o program
+```
+
+`rm` removes files.
+
+`-f` means force: do not ask for confirmation and do not complain if a matching file is missing.
+
+`*.o` matches all object files in the current directory, such as:
+
+```text
+main.o
+stack.o
+maths.o
+```
+
+So the command deletes object files and the final executable named `program`.
+
+## Rust Control Flow, Sorting, and Tooling
+
+### Q138 - Semicolon turns return expression into statement
+
+**Question:** Given `fn double(n: i32) -> i32 { n * 2; }`, explain what the function body evaluates to and fix it so it returns an `i32`.
+
+In Rust, the final expression in a block is returned if it has no semicolon.
+
+This does not compile:
+
+```rust
+fn double(n: i32) -> i32 {
+    n * 2;
+}
+```
+
+The semicolon turns `n * 2` into a statement. A statement does not produce the function's return value, so the block evaluates to unit:
+
+```rust
+()
+```
+
+Fix it by removing the semicolon:
+
+```rust
+fn double(n: i32) -> i32 {
+    n * 2
+}
+```
+
+Or use an explicit return:
+
+```rust
+fn double(n: i32) -> i32 {
+    return n * 2;
+}
+```
+
+### Q139 - `if` as an expression needs both branch values
+
+**Question:** Given `let score = 72;`, write one `let result = ...;` binding using `if` as an expression to produce `"pass"` or `"fail"`, and explain why the assigned expression needs an `else` branch.
+
+When `if` is used to assign a value, both branches must produce a compatible value.
+
+```rust
+let score = 72;
+
+let result = if score >= 40 {
+    "pass"
+} else {
+    "fail"
+};
+```
+
+The `else` is needed because `result` must always receive a value. If the condition is false and there is no `else`, there is no value to assign.
+
+This block is valid syntax, but it is not the right solution:
+
+```rust
+let result = {
+    if score >= 40 {
+        "pass"
+    }
+
+    "fail"
+};
+```
+
+The final expression in that block is always `"fail"`, so the earlier `"pass"` value is ignored.
+
+### Q140 - Rust `sort_by` with descending primary key
+
+**Question:** Given `let mut items = vec![(2, "red"), (5, "blue"), (5, "amber")];`, write the `sort_by` call with `|a, b|` that sorts by count descending and then word ascending.
+
+Use `sort_by` on the vector itself, not on `items.iter()`, because sorting must rearrange the actual vector.
+
+```rust
+let mut items = vec![
+    (2, "red"),
+    (5, "blue"),
+    (5, "amber"),
+];
+
+items.sort_by(|a, b| {
+    b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1))
+});
+```
+
+`b.0.cmp(&a.0)` reverses the count comparison, so larger counts come first.
+
+`then_with(|| a.1.cmp(&b.1))` is the tie-breaker. It only runs when the counts are equal, and it sorts the words alphabetically.
+
+The result is:
+
+```rust
+[(5, "amber"), (5, "blue"), (2, "red")]
+```
+
+### Q141 - Sorting floats with `partial_cmp`
+
+**Question:** Given `let mut readings = vec![(0.5, 2), (0.1, 9), (0.5, 1)];`, write the `sort_by` call with `|a, b|` that sorts by float ascending and then id ascending.
+
+Floating-point values use `partial_cmp` because `NaN` means floats do not always have a total ordering.
+
+```rust
+let mut readings = vec![(0.5, 2), (0.1, 9), (0.5, 1)];
+
+readings.sort_by(|a, b| {
+    a.0.partial_cmp(&b.0)
+        .unwrap()
+        .then_with(|| a.1.cmp(&b.1))
+});
+```
+
+`partial_cmp` returns an `Option<Ordering>`. For ordinary finite values, `unwrap()` gives the ordering. If a value is `NaN`, `partial_cmp` can return `None`.
+
+The tie-breaker:
+
+```rust
+then_with(|| a.1.cmp(&b.1))
+```
+
+sorts the id ascending when the float values are equal.
+
+### Q142 - Sort then collect top entries
+
+**Question:** Given a mutable vector of `(String, i32)` scores, sort highest score first and collect an owned `Vec` containing the top two entries.
+
+Sort the vector by the score field descending, then consume the vector and take the first two entries.
+
+```rust
+let mut scores = vec![
+    (String::from("Ada"), 12),
+    (String::from("Grace"), 18),
+    (String::from("Linus"), 15),
+];
+
+scores.sort_by(|a, b| {
+    b.1.cmp(&a.1)
+});
+
+let top_two: Vec<_> = scores
+    .into_iter()
+    .take(2)
+    .collect();
+```
+
+`b.1.cmp(&a.1)` sorts by the second tuple field descending.
+
+`into_iter()` consumes `scores` and yields owned `(String, i32)` values, so `top_two` owns its entries.
+
+If you used `iter()` instead:
+
+```rust
+let top_two: Vec<_> = scores.iter().take(2).collect();
+```
+
+the result would contain references to entries inside `scores`, not owned entries.
