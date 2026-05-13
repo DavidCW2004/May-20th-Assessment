@@ -4243,3 +4243,329 @@ enum List {
 ```
 
 `Box<List>` stores the next list node on the heap and keeps only a fixed-size pointer inside the enum variant. Because the pointer has a known size, Rust can calculate the size of `List`.
+
+### Q156 - `strtol` validation checks
+
+**Question:** In the mock `parse_positive` function after `strtol(text, &end, 10)`, write the checks that reject no digits, trailing junk, range errors, zero, and values too large for `int`.
+
+The question is not just asking you to call `strtol`. It is asking you to prove that the whole input is a valid positive `int`.
+
+```c
+#include <errno.h>
+#include <limits.h>
+#include <stdlib.h>
+
+int parse_positive(const char *text, int *out) {
+    char *end = NULL;
+    errno = 0;
+    long value = strtol(text, &end, 10);
+
+    if (end == text) {
+        return 0;
+    }
+    if (*end != '\0') {
+        return 0;
+    }
+    if (errno == ERANGE || value <= 0 || value > INT_MAX) {
+        return 0;
+    }
+
+    *out = (int)value;
+    return 1;
+}
+```
+
+`end == text` means `strtol` did not consume any digits, so input like `"abc"` is rejected.
+
+`*end != '\0'` means there was trailing junk after the number, so input like `"12abc"` is rejected.
+
+`errno == ERANGE` catches range errors reported by `strtol`. The `value <= 0` check rejects zero and negative values. The `value > INT_MAX` check rejects a `long` value that was parsed successfully but cannot fit into an `int`.
+
+### Q157 - Safe first-line file read
+
+**Question:** In the mock `print_first_line` stub, complete the `fopen` failure path, the `fgets` failure handling, the successful print, and the `fclose` calls.
+
+The stream must be checked before it is used. If opening fails, report the error and return.
+
+```c
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+
+int print_first_line(const char *path) {
+    FILE *fp = fopen(path, "r");
+    char line[80];
+
+    if (fp == NULL) {
+        fprintf(stderr, "cannot open %s: %s\n", path, strerror(errno));
+        return 1;
+    }
+
+    if (fgets(line, sizeof line, fp) == NULL) {
+        if (ferror(fp)) {
+            fprintf(stderr, "read error: %s\n", strerror(errno));
+        }
+        fclose(fp);
+        return 1;
+    }
+
+    printf("%s", line);
+    fclose(fp);
+    return 0;
+}
+```
+
+The second `if` is needed because `fgets` returning `NULL` can mean end-of-file or a real read error. `ferror(fp)` distinguishes the real error case.
+
+The file is closed on both paths after a successful `fopen`, because the program owns an open stream at that point.
+
+### Q158 - `static` helper vs public header function
+
+**Question:** For the mock `stack.c` declarations, make `make_node` private to the file and keep `push` callable from other files, then state which declaration belongs in `stack.h`.
+
+In C, `static` at file level gives a function internal linkage. That means only this `.c` file can call it.
+
+```c
+/* stack.c */
+static Node *make_node(char value);
+Stack push(Stack stack, char value);
+```
+
+`make_node` is a helper, so it should stay in `stack.c` and be marked `static`.
+
+`push` is part of the stack API, so its prototype belongs in the header:
+
+```c
+/* stack.h */
+Stack push(Stack stack, char value);
+```
+
+C does not use `public` before functions. Public access in C is normally controlled by whether the declaration appears in a header and whether the definition is externally visible.
+
+### Q159 - Remove first matching linked-list node
+
+**Question:** Complete the mock `remove_first(Node **head, char key)` so it can remove the head or a later node, updates the caller's head pointer if needed, frees the removed node, and returns success or failure.
+
+Because the function may need to change the caller's head pointer, it receives `Node **head`.
+
+The clean solution is to keep a pointer to the pointer that leads to the current node:
+
+```c
+#include <stdlib.h>
+
+typedef struct Node {
+    char key;
+    struct Node *next;
+} Node;
+
+int remove_first(Node **head, char key) {
+    Node **link = head;
+
+    while (*link != NULL) {
+        Node *current = *link;
+
+        if (current->key == key) {
+            *link = current->next;
+            free(current);
+            return 1;
+        }
+
+        link = &current->next;
+    }
+
+    return 0;
+}
+```
+
+At the start, `link` points at the caller's head pointer. Later, it points at a node's `next` field.
+
+This one assignment removes either the head node or a later node:
+
+```c
+*link = current->next;
+```
+
+After unlinking the node, the removed node must be freed. If the loop finishes without finding the key, return `0`.
+
+### Q160 - `fgetc` EOF vs read error
+
+**Question:** After the mock `while ((ch = fgetc(fp)) != EOF)` loop, add the stream error check and explain why EOF alone cannot prove the loop ended cleanly.
+
+`fgetc` returns `EOF` in two different cases:
+
+```text
+the stream reached end-of-file
+a read error happened
+```
+
+So after the loop, check the stream:
+
+```c
+int ch;
+long count = 0;
+
+while ((ch = fgetc(fp)) != EOF) {
+    count++;
+}
+
+if (ferror(fp)) {
+    return -1;
+}
+
+return count;
+```
+
+If `ferror(fp)` is true, the loop ended because of a read error. If `ferror(fp)` is false, then the loop reached the end of the file cleanly.
+
+### Q161 - C++ subscript operator returning a reference
+
+**Question:** Complete `operator[]` so assignment through `grades[2]` changes the stored element. Include a simple bounds check.
+
+The important part is the return type:
+
+```cpp
+int&
+```
+
+It must return a reference to the stored element, not a copy. If it returned `int`, then this would not update the array element:
+
+```cpp
+grades[2] = 99;
+```
+
+A direct answer matching the mock code is:
+
+```cpp
+#include <stdexcept>
+
+class Grades {
+    int data[4] = {0, 0, 0, 0};
+
+public:
+    int& operator[](unsigned int i) {
+        if (i >= 4) {
+            throw std::out_of_range("grade index");
+        }
+        return data[i];
+    }
+};
+```
+
+The valid indexes for `data[4]` are `0`, `1`, `2`, and `3`, so `i >= 4` must be rejected.
+
+Using `int` is also acceptable if you check negative indexes:
+
+```cpp
+int& operator[](int i) {
+    if (i < 0 || i >= 4) {
+        throw std::out_of_range("grade index");
+    }
+    return data[i];
+}
+```
+
+### Q162 - C++ output operator stream references
+
+**Question:** Complete the output operator for `Date` so `std::cout << d` prints `day/month/year` and can still be chained with another output.
+
+The stream is the left operand:
+
+```cpp
+std::cout << d
+```
+
+So `operator<<` is normally written as a non-member function that receives the stream as its first parameter.
+
+```cpp
+#include <iostream>
+
+class Date {
+    int day;
+    int month;
+    int year;
+
+public:
+    Date(int d, int m, int y) : day(d), month(m), year(y) {}
+    friend std::ostream& operator<<(std::ostream& os, const Date& d);
+};
+
+std::ostream& operator<<(std::ostream& os, const Date& d) {
+    os << d.day << "/" << d.month << "/" << d.year;
+    return os;
+}
+```
+
+The parameter:
+
+```cpp
+std::ostream& os
+```
+
+is the stream being written to.
+
+The return type:
+
+```cpp
+std::ostream&
+```
+
+returns the same stream so output can be chained:
+
+```cpp
+std::cout << d << "\n";
+```
+
+The function is declared as a `friend` because `day`, `month`, and `year` are private.
+
+### Q163 - Template member definitions with `Box<T>::`
+
+**Question:** Write the out-of-class definitions for the `Box` template constructor and `get` method. Use the correct template headers and qualified names, and state where template definitions should normally live.
+
+For each out-of-class template member definition, repeat the template header:
+
+```cpp
+template<typename T>
+```
+
+Then qualify the member with the instantiated class pattern:
+
+```cpp
+Box<T>::
+```
+
+Full answer:
+
+```cpp
+template<typename T>
+class Box {
+    T value;
+
+public:
+    Box(T value);
+    T get() const;
+};
+
+template<typename T>
+Box<T>::Box(T value) : value(value) {}
+
+template<typename T>
+T Box<T>::get() const {
+    return value;
+}
+```
+
+It is not enough to write:
+
+```cpp
+Box::get()
+```
+
+because `Box` by itself is the template name, not a concrete class type. The member belongs to `Box<T>`.
+
+Template definitions normally live in the header because the compiler must see the full template body at the point where a specific type is used. For example, if another file writes:
+
+```cpp
+Box<int> b(5);
+```
+
+the compiler needs the constructor and `get` bodies so it can instantiate the `Box<int>` version.

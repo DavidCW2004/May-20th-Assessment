@@ -9,6 +9,7 @@
 - When adding mistake-log rows from a user's missed question, first read the actual referenced question, code snippet, and mark scheme context. The redo prompt and markdown explanation must fit that exact question context, not just the short mistake summary the user typed.
 - For mistake-log redo prompts, ask the user to apply the missed idea to a small concrete example instead of listing the missing phrases from the mark scheme.
 - When adding new mistake-log rows, append them to the end of the spreadsheet instead of inserting them into the middle of older rows.
+- Mock exam mistakes must go in `revision-mock-exam-mistakes.md`, not in `revision-mistake-log.xlsx`, so the relevant mock-exam code snippets can be included. Use question numbers that continue from the revision mistake sequence, and put the detailed correct answer/explanation in `revision-correct-rules.md`.
 
 ## Topic Sheet Notes
 
