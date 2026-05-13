@@ -3784,3 +3784,462 @@ let top_two: Vec<_> = scores.iter().take(2).collect();
 ```
 
 the result would contain references to entries inside `scores`, not owned entries.
+
+### Q143 - Makefile clean rule
+
+**Question:** For the mock project with `main.c`, `stats.c`, and `stats.h`, write the full Makefile fragment for `report`, then include the `clean` recipe that removes all object files and the `report` executable.
+
+The Makefile needs rules for the executable, each object file, and cleanup.
+
+```make
+CC = gcc
+CFLAGS = -std=c99 -Wall -Wextra
+
+report: main.o stats.o
+<TAB>$(CC) $(CFLAGS) main.o stats.o -o report
+
+main.o: main.c stats.h
+<TAB>$(CC) $(CFLAGS) -c main.c -o main.o
+
+stats.o: stats.c stats.h
+<TAB>$(CC) $(CFLAGS) -c stats.c -o stats.o
+
+clean:
+<TAB>rm -f *.o report
+```
+
+The command line under a Makefile target must start with a real tab.
+
+`rm` removes files. The `-f` option means force: do not complain if a file is already missing. The pattern `*.o` matches object files such as `main.o` and `stats.o`. The final `report` removes the executable.
+
+`clean` is not part of normal compilation unless you run it explicitly:
+
+```sh
+make clean
+```
+
+### Q144 - Heap string copy allocation
+
+**Question:** In the `copy_label(const char *src)` stub, fill in `char *copy = ...`, the allocation failure check, and the copy step so the result includes room for the string terminator.
+
+`strlen(src)` counts the visible characters before the string terminator. It does not count the final `'\0'`, so the allocation needs one extra byte.
+
+```c
+#include <stdlib.h>
+#include <string.h>
+
+char *copy_label(const char *src) {
+    char *copy = malloc(strlen(src) + 1);
+    if (copy == NULL) {
+        return NULL;
+    }
+
+    strcpy(copy, src);
+    return copy;
+}
+```
+
+The caller owns the returned heap allocation and must later call:
+
+```c
+free(copy);
+```
+
+### Q145 - `qsort` comparator ordering
+
+**Question:** For `typedef struct { char name[16]; int score; } Entry;`, complete `compare_entries` and `sort_entries` so `qsort` orders score descending and name ascending on ties.
+
+`qsort` does not want a true or false answer. Its comparator must return a negative value, zero, or a positive value:
+
+```text
+negative: left item comes before right item
+zero: equal for sorting purposes
+positive: left item comes after right item
+```
+
+For score descending, the larger score should come first:
+
+```c
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char name[16];
+    int score;
+} Entry;
+
+int compare_entries(const void *left, const void *right) {
+    const Entry *a = left;
+    const Entry *b = right;
+
+    if (a->score > b->score) {
+        return -1;
+    }
+    if (a->score < b->score) {
+        return 1;
+    }
+
+    return strcmp(a->name, b->name);
+}
+
+void sort_entries(Entry entries[], size_t len) {
+    qsort(entries, len, sizeof entries[0], compare_entries);
+}
+```
+
+The final `strcmp` is the tie-breaker. It sorts names ascending when the scores are equal.
+
+This is not enough:
+
+```c
+return a->score > b->score;
+```
+
+That only returns `1` or `0`, so it cannot properly distinguish less-than, equal, and greater-than cases. It also gives the wrong sign for descending order.
+
+### Q146 - Dangling pointer after `free`
+
+**Question:** For the mock code `int *p = malloc(sizeof *p); *p = 10; free(p); printf("%d\n", *p);`, explain why `p` is dangling and what C behaviour dereferencing it gives.
+
+After `free(p)`, the heap object that `p` pointed to is no longer owned by your program.
+
+```c
+int *p = malloc(sizeof *p);
+*p = 10;
+
+free(p);
+printf("%d\n", *p);
+```
+
+The variable `p` may still contain the old address, but that address is stale. A pointer in this state is called a dangling pointer.
+
+Dereferencing it means trying to read the object at that old address:
+
+```c
+*p
+```
+
+Because the object has already been freed, this is a use-after-free. In C, that gives undefined behaviour. The program might print the old value, print nonsense, crash, or appear to work.
+
+### Q147 - Rule of three for raw heap arrays
+
+**Question:** For the mock `Buffer` class with `char *data`, `new char[size]`, and `~Buffer() = default`, identify the leak and explain why a raw-owning fix also needs a copy constructor and copy assignment operator.
+
+If a class allocates a raw heap array:
+
+```cpp
+class Buffer {
+    char *data;
+
+public:
+    Buffer(int size) {
+        data = new char[size];
+    }
+};
+```
+
+then the destructor must release it:
+
+```cpp
+~Buffer() {
+    delete[] data;
+}
+```
+
+However, that alone is not enough. The compiler-generated copy constructor and copy assignment operator would copy only the pointer value.
+
+```cpp
+Buffer a(10);
+Buffer b = a;
+```
+
+Now `a.data` and `b.data` point to the same heap array. If both destructors call `delete[] data`, the same allocation can be deleted twice.
+
+This is why the rule of three says that if you need one of these, you probably need all three:
+
+```cpp
+~Buffer();
+Buffer(const Buffer& other);
+Buffer& operator=(const Buffer& other);
+```
+
+A simpler modern fix is to use an RAII member such as:
+
+```cpp
+#include <vector>
+
+class Buffer {
+    std::vector<char> data;
+
+public:
+    explicit Buffer(int size) : data(size) {}
+};
+```
+
+The vector handles destruction and copying correctly.
+
+### Q148 - `shared_ptr` last owner lifetime
+
+**Question:** Trace the mock `shared_ptr`/`weak_ptr` code with `a`, `watch`, `b = a`, and `a.reset()`: decide whether `watch.lock()` succeeds and when the shared int is destroyed.
+
+`std::shared_ptr` destroys the owned object only when the last shared owner is gone.
+
+```cpp
+#include <memory>
+#include <iostream>
+
+auto a = std::make_shared<int>(42);
+std::weak_ptr<int> watch = a;
+auto b = a;
+
+a.reset();
+
+if (auto p = watch.lock()) {
+    std::cout << *p << "\n";
+}
+```
+
+After:
+
+```cpp
+auto b = a;
+```
+
+there are two shared owners: `a` and `b`.
+
+After:
+
+```cpp
+a.reset();
+```
+
+`a` owns nothing, but `b` still owns the integer. The object is still alive, so `watch.lock()` succeeds and returns a `shared_ptr` to the same integer.
+
+The integer is destroyed only when the final `shared_ptr` owner is gone.
+
+### Q149 - Catching exceptions by const reference
+
+**Question:** For `catch (const std::invalid_argument& error)` after throwing `std::invalid_argument("negative age")`, explain why const reference is used and what `error.what()` prints.
+
+Catch exception objects by const reference:
+
+```cpp
+#include <stdexcept>
+#include <iostream>
+
+try {
+    throw std::invalid_argument("negative age");
+} catch (const std::invalid_argument& error) {
+    std::cerr << error.what() << "\n";
+}
+```
+
+The reference avoids copying the exception object. The `const` part means the handler promises not to modify the exception.
+
+This matters especially when catching through a base type such as `std::exception`, because catching by reference preserves the real dynamic exception object. Catching by value can copy and slice exception objects.
+
+`error.what()` returns a C-style string describing the exception. In this example, it returns the message:
+
+```text
+negative age
+```
+
+### Q150 - Float sorting unwrap after `partial_cmp`
+
+**Question:** Given `let mut readings = vec![(0.5, 2), (0.1, 9), (0.5, 1)];`, write the `sort_by` call for float ascending and id descending, including `partial_cmp(...).unwrap()`.
+
+Floating-point comparison uses `partial_cmp` because a float can be `NaN`. If either value is `NaN`, Rust cannot produce a normal ordering.
+
+```rust
+let mut readings = vec![(0.5, 2), (0.1, 9), (0.5, 1)];
+
+readings.sort_by(|a, b| {
+    a.0.partial_cmp(&b.0)
+        .unwrap()
+        .then_with(|| b.1.cmp(&a.1))
+});
+```
+
+The `unwrap()` belongs immediately after `partial_cmp` because `partial_cmp` returns:
+
+```rust
+Option<std::cmp::Ordering>
+```
+
+For normal float values, it returns `Some(Ordering::Less)`, `Some(Ordering::Equal)`, or `Some(Ordering::Greater)`. The `unwrap()` extracts that ordering.
+
+If a `NaN` is involved, `partial_cmp` returns `None`, and `unwrap()` would panic. In exam code, this usually means you are assuming the readings do not contain `NaN`.
+
+The tie-breaker:
+
+```rust
+then_with(|| b.1.cmp(&a.1))
+```
+
+sorts the id descending when the float values are equal.
+
+### Q151 - Semicolon after Rust `let` parse statement
+
+**Question:** In the mock `parse_count` function returning `Result<i32, ParseIntError>`, write the parsing `let n = ...?;` line and explain why that line needs a semicolon but `Ok(n)` does not.
+
+A `let` binding is a statement, so it needs a semicolon:
+
+```rust
+fn parse_count(text: &str) -> Result<i32, std::num::ParseIntError> {
+    let n = text.trim().parse::<i32>()?;
+    Ok(n)
+}
+```
+
+The `?` means: if parsing succeeds, put the parsed `i32` into `n`; if parsing fails, return the parse error early from the function.
+
+The final line has no semicolon:
+
+```rust
+Ok(n)
+```
+
+because it is the function's final expression. Adding a semicolon would turn it into a statement and the function body would evaluate to unit `()`, not `Result<i32, ParseIntError>`.
+
+### Q152 - Channel send and dropping original sender
+
+**Question:** In the mock `mpsc` program with `let (tx, rx) = mpsc::channel()` and `for id in 0..4`, spawn workers that send `id * 10`, then explain why `drop(tx)` is needed before `for value in rx` can finish.
+
+Each worker needs its own cloned sender, moved into the thread:
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    for id in 0..4 {
+        let tx = tx.clone();
+        thread::spawn(move || {
+            tx.send(id * 10).unwrap();
+        });
+    }
+
+    drop(tx);
+
+    for value in rx {
+        println!("{value}");
+    }
+}
+```
+
+`tx.send(id * 10).unwrap()` sends the worker's value and panics if the receiver has already gone away.
+
+All cloned `tx` values send to the same `rx`, because they are handles to the same channel.
+
+The receiving loop:
+
+```rust
+for value in rx
+```
+
+ends only when all senders have been dropped. The worker senders disappear when their threads finish, but the original `tx` in `main` would still exist unless you call:
+
+```rust
+drop(tx);
+```
+
+Without that, the receiver may keep waiting because it thinks another value could still be sent.
+
+### Q153 - Mutex lock result and guard lifetime
+
+**Question:** In the mock `Arc<Mutex<i32>>` counter loop, complete the spawned closure so it locks, unwraps, increments through the guard, and explain when the guard unlocks the mutex.
+
+Use `Arc` for shared ownership across threads and `Mutex` for exclusive mutable access:
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+let counter = Arc::new(Mutex::new(0));
+let mut handles = Vec::new();
+
+for _ in 0..4 {
+    let counter = Arc::clone(&counter);
+    handles.push(thread::spawn(move || {
+        let mut value = counter.lock().unwrap();
+        *value += 1;
+    }));
+}
+
+for handle in handles {
+    handle.join().unwrap();
+}
+```
+
+`lock()` returns a `Result`, not the integer directly. The result can be an error if the mutex was poisoned by a panic while locked.
+
+This line unwraps the result:
+
+```rust
+let mut value = counter.lock().unwrap();
+```
+
+The unwrapped value is a mutex guard. The guard acts like a pointer or reference to the protected `i32`, so this updates the inner value:
+
+```rust
+*value += 1;
+```
+
+The mutex is unlocked automatically when the guard is dropped, usually at the end of the closure block.
+
+### Q154 - Generic bounds for compare and display
+
+**Question:** For the mock `show_larger<T>` body using `if a > b` and `println!("{winner}")`, fix the generic signature and name the trait bounds needed for those two operations.
+
+The `>` operator needs `PartialOrd`. Printing with normal braces `{}` needs `Display`.
+
+```rust
+use std::fmt::Display;
+
+fn show_larger<T>(a: T, b: T)
+where
+    T: PartialOrd + Display,
+{
+    let winner = if a > b { a } else { b };
+    println!("{winner}");
+}
+```
+
+This equivalent shorter form is also valid:
+
+```rust
+fn show_larger<T: PartialOrd + Display>(a: T, b: T) {
+    let winner = if a > b { a } else { b };
+    println!("{winner}");
+}
+```
+
+Without `PartialOrd`, Rust cannot know that `>` is valid for `T`. Without `Display`, Rust cannot know that `T` can be printed using `{}`.
+
+### Q155 - Boxed recursive enum size
+
+**Question:** For the mock enum `List { Cons(i32, List), Nil }`, replace the recursive field with `Box<List>` and explain why the boxed pointer gives the enum a known size.
+
+This version is invalid:
+
+```rust
+enum List {
+    Cons(i32, List),
+    Nil,
+}
+```
+
+`List` would contain another full `List`, which contains another full `List`, and so on. Rust cannot calculate a finite size for the type.
+
+Use `Box<List>` for the recursive part:
+
+```rust
+enum List {
+    Cons(i32, Box<List>),
+    Nil,
+}
+```
+
+`Box<List>` stores the next list node on the heap and keeps only a fixed-size pointer inside the enum variant. Because the pointer has a known size, Rust can calculate the size of `List`.

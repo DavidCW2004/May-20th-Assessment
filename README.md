@@ -6,6 +6,7 @@
 - Before regenerating outputs, scan source text for escaped ampersand entities and preserve existing `Completed` marks in `revision-mistake-log.xlsx`.
 - Before regenerating `revision-mistake-log.xlsx`, explicitly inspect the current spreadsheet's `Completed` column and carry every existing `Yes` value into the regenerated workbook. If the user has just marked rows complete, make sure those rows are also represented as `Yes` after regeneration.
 - Revision questions should test active recall and problem-solving. Do not write questions that tell the user exactly what to include, and do not use prompts that only ask the user to restate or parrot a rule back.
+- When adding mistake-log rows from a user's missed question, first read the actual referenced question, code snippet, and mark scheme context. The redo prompt and markdown explanation must fit that exact question context, not just the short mistake summary the user typed.
 - For mistake-log redo prompts, ask the user to apply the missed idea to a small concrete example instead of listing the missing phrases from the mark scheme.
 - When adding new mistake-log rows, append them to the end of the spreadsheet instead of inserting them into the middle of older rows.
 
@@ -24,10 +25,15 @@
 
 ## Mock Exam Paper Notes
 
-- Mock exam paper topics must come from the RAG revision, course slides, worksheets, and topic sheets.
-- Do not reuse worksheet, CA, topic-sheet, or sample-paper questions directly. Questions may be inspired by those materials, but they must change the context, data, wording, or required reasoning so the paper tests understanding rather than recall of a seen question.
-- Format mock papers like `mock-exams/ECM2433-sample-answers.pdf` for overall structure and exam style.
-- Put all answers and mark schemes at the end of the paper, not throughout the question section.
+- Mock exam paper topics must be randomly selected from topics available in the course slides, worksheets, and RAG revision tracker.
+- Each mock exam paper must test a mix of topics across C, C++, and Rust where possible. Do not build every paper around the same few topics; rotate coverage across the available RAG topics over multiple papers.
+- Mock exam questions should be about as hard as the questions in the sample paper. Do not make them easier revision-drill questions unless the user explicitly asks for an easier paper.
+- Do not reuse worksheet, CA, topic-sheet, or sample-paper questions directly. This includes all existing questions from files in `topicsheets/`. Questions may be inspired by those materials, but they must change the context, data, wording, and required reasoning so the paper tests understanding rather than recall of a seen question.
+- Mock papers must use plain exam question headings only: `Question 1`, `Question 2`, etc. Do not label questions by topic area, language category, or RAG heading, such as "C memory" or "Rust concurrency".
+- Each main question should contain mixed subparts labelled `(a)`, `(b)`, `(c)`, etc., with marks shown at the end of each subpart and a total shown at the end of the main question, e.g. `(Total 25 marks)`.
+- The front page should follow the sample-paper style: module name, mock paper title, "The C Family", "Closed Book", materials/permitted-materials lines, guidelines, and exam instructions.
+- Keep the question section separate from the answer section. The question section should contain only questions, code snippets, marks, and totals.
+- Put all answers and mark schemes at the end of the paper, not throughout the question section. For every answered subpart, the answer section must use this exact structure: `(a) Question (4 marks): <repeat the original question prompt>` on one line, then `Answer: <answer or marking notes>` below it. Keep the same subpart letter and mark value as the question section.
 - Any question that asks the student to inspect, fix, trace, or complete code must include the corresponding code snippet in the paper.
 - Mock exam questions should test application and problem-solving. Avoid prompts that tell the student exactly what to include or only ask them to restate a rule.
 - Include a clear answer or mark scheme for every question.
