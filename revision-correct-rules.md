@@ -3787,23 +3787,11 @@ the result would contain references to entries inside `scores`, not owned entrie
 
 ### Q143 - Makefile clean rule
 
-**Question:** For the mock project with `main.c`, `stats.c`, and `stats.h`, write the full Makefile fragment for `report`, then include the `clean` recipe that removes all object files and the `report` executable.
+**Question:** For the mock project with `main.c`, `stats.c`, and `stats.h`, write only the `clean` target recipe that removes all object files and the `report` executable. Explain what each part of the command removes.
 
-The Makefile needs rules for the executable, each object file, and cleanup.
+The `clean` target only needs the cleanup recipe:
 
 ```make
-CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra
-
-report: main.o stats.o
-<TAB>$(CC) $(CFLAGS) main.o stats.o -o report
-
-main.o: main.c stats.h
-<TAB>$(CC) $(CFLAGS) -c main.c -o main.o
-
-stats.o: stats.c stats.h
-<TAB>$(CC) $(CFLAGS) -c stats.c -o stats.o
-
 clean:
 <TAB>rm -f *.o report
 ```
@@ -3820,7 +3808,7 @@ make clean
 
 ### Q144 - Heap string copy allocation
 
-**Question:** In the `copy_label(const char *src)` stub, fill in `char *copy = ...`, the allocation failure check, and the copy step so the result includes room for the string terminator.
+**Question:** In the `copy_label(const char *src)` stub, fill in only the allocation expression for `copy`. It must allocate enough bytes for all visible characters and the final string terminator.
 
 `strlen(src)` counts the visible characters before the string terminator. It does not count the final `'\0'`, so the allocation needs one extra byte.
 
@@ -3899,7 +3887,7 @@ That only returns `1` or `0`, so it cannot properly distinguish less-than, equal
 
 ### Q146 - Dangling pointer after `free`
 
-**Question:** For the mock code `int *p = malloc(sizeof *p); *p = 10; free(p); printf("%d\n", *p);`, explain why `p` is dangling and what C behaviour dereferencing it gives.
+**Question:** For the mock code below, explain why `p` is dangling and what C behaviour dereferencing it gives.
 
 After `free(p)`, the heap object that `p` pointed to is no longer owned by your program.
 
@@ -3923,7 +3911,7 @@ Because the object has already been freed, this is a use-after-free. In C, that 
 
 ### Q147 - Rule of three for raw heap arrays
 
-**Question:** For the mock `Buffer` class with `char *data`, `new char[size]`, and `~Buffer() = default`, identify the leak and explain why a raw-owning fix also needs a copy constructor and copy assignment operator.
+**Question:** For the mock `Buffer` class, assume you replace the default destructor with one that calls `delete[] data`. Explain why that is still not a complete raw-owning fix, and name the two copy operations that also need handling.
 
 If a class allocates a raw heap array:
 
@@ -3980,7 +3968,7 @@ The vector handles destruction and copying correctly.
 
 ### Q148 - `shared_ptr` last owner lifetime
 
-**Question:** Trace the mock `shared_ptr`/`weak_ptr` code with `a`, `watch`, `b = a`, and `a.reset()`: decide whether `watch.lock()` succeeds and when the shared int is destroyed.
+**Question:** In the mock `shared_ptr`/`weak_ptr` code, focus on the lifetime rule: after `auto b = a;` and `a.reset();`, explain why the shared int is still alive and state exactly when it will be destroyed.
 
 `std::shared_ptr` destroys the owned object only when the last shared owner is gone.
 
@@ -4046,7 +4034,7 @@ negative age
 
 ### Q150 - Float sorting unwrap after `partial_cmp`
 
-**Question:** Given `let mut readings = vec![(0.5, 2), (0.1, 9), (0.5, 1)];`, write the `sort_by` call for float ascending and id descending, including `partial_cmp(...).unwrap()`.
+**Question:** Given the readings below, write the first comparison inside `sort_by` using `partial_cmp(...).unwrap()`, then add the id-descending tie-breaker.
 
 Floating-point comparison uses `partial_cmp` because a float can be `NaN`. If either value is `NaN`, Rust cannot produce a normal ordering.
 
@@ -4080,7 +4068,7 @@ sorts the id descending when the float values are equal.
 
 ### Q151 - Semicolon after Rust `let` parse statement
 
-**Question:** In the mock `parse_count` function returning `Result<i32, ParseIntError>`, write the parsing `let n = ...?;` line and explain why that line needs a semicolon but `Ok(n)` does not.
+**Question:** In the mock `parse_count` function, write the parsing `let n = ...?;` line with the correct semicolon. Then explain why that `let` line needs `;` but the final `Ok(n)` does not.
 
 A `let` binding is a statement, so it needs a semicolon:
 
@@ -4103,7 +4091,7 @@ because it is the function's final expression. Adding a semicolon would turn it 
 
 ### Q152 - Channel send and dropping original sender
 
-**Question:** In the mock `mpsc` program with `let (tx, rx) = mpsc::channel()` and `for id in 0..4`, spawn workers that send `id * 10`, then explain why `drop(tx)` is needed before `for value in rx` can finish.
+**Question:** In the mock `mpsc` program below, write the worker body line that sends `id * 10` through the cloned transmitter, then explain why `drop(tx)` is needed before `for value in rx` can finish.
 
 Each worker needs its own cloned sender, moved into the thread:
 
@@ -4149,7 +4137,7 @@ Without that, the receiver may keep waiting because it thinks another value coul
 
 ### Q153 - Mutex lock result and guard lifetime
 
-**Question:** In the mock `Arc<Mutex<i32>>` counter loop, complete the spawned closure so it locks, unwraps, increments through the guard, and explain when the guard unlocks the mutex.
+**Question:** In the mock `Arc<Mutex<i32>>` counter loop, write the two closure lines that call `lock().unwrap()` and increment through the guard. Then explain what `lock()` returns and when the mutex unlocks.
 
 Use `Arc` for shared ownership across threads and `Mutex` for exclusive mutable access:
 
@@ -4220,7 +4208,7 @@ Without `PartialOrd`, Rust cannot know that `>` is valid for `T`. Without `Displ
 
 ### Q155 - Boxed recursive enum size
 
-**Question:** For the mock enum `List { Cons(i32, List), Nil }`, replace the recursive field with `Box<List>` and explain why the boxed pointer gives the enum a known size.
+**Question:** For the mock enum below, explain why the unboxed recursive field gives `List` no known size, then state how `Box<List>` fixes that by storing a fixed-size pointer.
 
 This version is invalid:
 
@@ -4246,7 +4234,7 @@ enum List {
 
 ### Q156 - `strtol` validation checks
 
-**Question:** In the mock `parse_positive` function after `strtol(text, &end, 10)`, write the checks that reject no digits, trailing junk, range errors, zero, and values too large for `int`.
+**Question:** In the mock `parse_positive` function after the `strtol` call, write the `end == text` check and the combined range/positive/int-size check using `errno == ERANGE`, `value <= 0`, and `value > INT_MAX`.
 
 The question is not just asking you to call `strtol`. It is asking you to prove that the whole input is a valid positive `int`.
 
@@ -4321,7 +4309,7 @@ The file is closed on both paths after a successful `fopen`, because the program
 
 ### Q158 - `static` helper vs public header function
 
-**Question:** For the mock `stack.c` declarations, make `make_node` private to the file and keep `push` callable from other files, then state which declaration belongs in `stack.h`.
+**Question:** For the mock `stack.c` declarations, fix the two access/linkage mistakes: make `make_node` private to the file with the correct C keyword, and explain why `public` is not used before `push` in C.
 
 In C, `static` at file level gives a function internal linkage. That means only this `.c` file can call it.
 
@@ -4466,7 +4454,7 @@ int& operator[](int i) {
 
 ### Q162 - C++ output operator stream references
 
-**Question:** Complete the output operator for `Date` so `std::cout << d` prints `day/month/year` and can still be chained with another output.
+**Question:** For the mock `Date` output operator, fill in the missing stream reference pieces: the return type must be `std::ostream&`, and the first parameter must be `std::ostream& os`. Explain why returning the stream reference allows chaining.
 
 The stream is the left operand:
 
@@ -4519,7 +4507,7 @@ The function is declared as a `friend` because `day`, `month`, and `year` are pr
 
 ### Q163 - Template member definitions with `Box<T>::`
 
-**Question:** Write the out-of-class definitions for the `Box` template constructor and `get` method. Use the correct template headers and qualified names, and state where template definitions should normally live.
+**Question:** For the mock `Box` template, write the out-of-class definitions for the constructor and `get` using `Box<T>::` in both definitions. Then explain why template definitions normally live in the header.
 
 For each out-of-class template member definition, repeat the template header:
 
@@ -4569,3 +4557,1143 @@ Box<int> b(5);
 ```
 
 the compiler needs the constructor and `get` bodies so it can instantiate the `Box<int>` version.
+
+## Mock Paper 2 - Rust lifetimes, closures, iterators, and results
+
+### Q164 - Lifetime annotation for returned input borrow
+
+**Question:** Fix the `choose_label` signature so the returned borrowed string slice can come from either input. Then explain what the single lifetime parameter says about the returned borrow.
+
+The fixed signature is:
+
+```rust
+fn choose_label<'a>(primary: &'a str, fallback: &'a str) -> &'a str {
+    if primary.is_empty() {
+        fallback
+    } else {
+        primary
+    }
+}
+```
+
+The `&'a` parts matter. They say:
+
+```text
+primary is borrowed for lifetime 'a
+fallback is borrowed for lifetime 'a
+the returned string slice is also borrowed for lifetime 'a
+```
+
+This is needed because the function might return `primary` or `fallback`. Rust must know that the returned borrowed string slice cannot outlive the input borrow it came from.
+
+The annotation does not keep either input alive for longer. It only describes the relationship between the input borrows and the output borrow.
+
+### Q165 - Closure capture by mutable borrow and `FnMut`
+
+**Question:** Fix the closure binding below so both calls compile. Then explain how the closure captures `seen` and why the closure trait is `FnMut`.
+
+Correct code:
+
+```rust
+let mut seen = 0;
+
+let mut record = |word: &str| {
+    if word.starts_with('a') {
+        seen += 1;
+    }
+};
+
+record("apple");
+record("pear");
+```
+
+The closure uses `seen += 1`, so it must capture `seen` by mutable borrow. It is not just reading `seen`; it is changing it.
+
+Because the closure mutates captured state, the closure value itself must be mutable:
+
+```rust
+let mut record = ...
+```
+
+This closure implements `FnMut`. A closure that implements `FnMut` can be called more than once, but calling it may mutate captured state.
+
+### Q166 - Iterator pipeline for indexed positive readings
+
+**Question:** Starting from the `readings` vector, collect `[(0, 3), (3, 8)]` as `Vec<(usize, i32)>` without explicit indexing. The index must be the original position in the vector.
+
+One direct answer is:
+
+```rust
+let readings = vec![Some(3), None, Some(-2), Some(8)];
+
+let positives: Vec<(usize, i32)> = readings
+    .iter()
+    .enumerate()
+    .filter_map(|(index, reading)| match reading {
+        Some(value) if *value > 0 => Some((index, *value)),
+        _ => None,
+    })
+    .collect();
+```
+
+`enumerate()` gives the original index before filtering happens:
+
+```text
+0 -> Some(3)
+1 -> None
+2 -> Some(-2)
+3 -> Some(8)
+```
+
+`filter_map` combines filtering and mapping:
+
+```text
+return Some(new_value) to keep an item
+return None to discard an item
+```
+
+Here it keeps only `Some(value)` where the value is positive, and turns it into `(index, value)`.
+
+Because this version uses `.iter()`, `reading` is a borrowed `Option<i32>`. Inside the match, `value` is a borrowed `i32`, so `*value` gets the actual integer.
+
+An explicit `filter` then `map` version is also possible:
+
+```rust
+let positives: Vec<(usize, i32)> = readings
+    .into_iter()
+    .enumerate()
+    .filter(|(_, reading)| match reading {
+        Some(value) => *value > 0,
+        None => false,
+    })
+    .map(|(index, reading)| (index, reading.unwrap()))
+    .collect();
+```
+
+The `filter_map` version is cleaner because it avoids `unwrap`.
+
+### Q167 - File read with `Result` and question-mark propagation
+
+**Question:** Complete `total_file` so it reads the whole file, parses each line as `i32`, adds the values, and uses `?` to propagate both file-read and parse errors.
+
+Correct code:
+
+```rust
+use std::error::Error;
+use std::fs;
+
+fn total_file(path: &str) -> Result<i32, Box<dyn Error>> {
+    let text = fs::read_to_string(path)?;
+    let mut total = 0;
+
+    for line in text.lines() {
+        total += line.trim().parse::<i32>()?;
+    }
+
+    Ok(total)
+}
+```
+
+`fs::read_to_string(path)?` loads the whole file into a `String`. If reading the file fails, `?` returns the file error early from `total_file`.
+
+The parse line also returns a `Result`:
+
+```rust
+line.trim().parse::<i32>()?
+```
+
+If parsing fails, `?` returns the parse error early.
+
+The function returns:
+
+```rust
+Result<i32, Box<dyn Error>>
+```
+
+so it can return either a successful total with `Ok(total)` or an error. `Option` would be the wrong return type here because file reading and parsing can produce real error details, not just "something was missing".
+
+### Q168 - Safe third-name lookup with `Option`
+
+**Question:** Rewrite `third_name` so it does not panic when the slice is too short. It should return `Option<&str>` borrowed from the input.
+
+The original code is unsafe because indexing can panic:
+
+```rust
+fn third_name(names: &[String]) -> &str {
+    &names[2]
+}
+```
+
+If there is no third element, `names[2]` panics.
+
+Use `get` instead:
+
+```rust
+fn third_name(names: &[String]) -> Option<&str> {
+    names.get(2).map(|name| name.as_str())
+}
+```
+
+`names.get(2)` returns:
+
+```text
+Some(&String) if the third element exists
+None if it does not
+```
+
+The `map` only runs on the `Some` case. It converts the inner `&String` into a borrowed string slice:
+
+```rust
+|name| name.as_str()
+```
+
+The more explicit version is:
+
+```rust
+fn third_name(names: &[String]) -> Option<&str> {
+    match names.get(2) {
+        Some(name) => Some(name.as_str()),
+        None => None,
+    }
+}
+```
+
+## Mock Paper 2 - Generic copying, iterators, and `sizeof`
+
+### Q169 - Generic byte copy with element width
+
+**Question:** Complete `copy_slot` so it copies the array element at source index `from` into destination index `to`. Explain why the element width is needed.
+
+Because the array is received as:
+
+```c
+void *array
+```
+
+the function does not know the real element type. It might be an array of `int`, `double`, structs, or something else.
+
+Convert the base pointer to `char *` so pointer arithmetic moves one byte at a time:
+
+```c
+#include <stddef.h>
+#include <string.h>
+
+void copy_slot(void *array, size_t from, size_t to, size_t width) {
+    char *bytes = array;
+
+    memmove(bytes + to * width, bytes + from * width, width);
+}
+```
+
+`from` and `to` are element indexes, not byte offsets. The start byte of an element is:
+
+```c
+index * width
+```
+
+So:
+
+```c
+bytes + from * width
+```
+
+points at the first byte of the source element, and:
+
+```c
+bytes + to * width
+```
+
+points at the first byte of the destination element.
+
+The final `width` argument to `memmove` says how many bytes to copy. `memmove` is preferred over a simple loop because it handles overlapping source and destination ranges safely.
+
+A manual byte-copy version is:
+
+```c
+void copy_slot(void *array, size_t from, size_t to, size_t width) {
+    char *bytes = array;
+
+    for (size_t i = 0; i < width; i++) {
+        bytes[to * width + i] = bytes[from * width + i];
+    }
+}
+```
+
+That shows the arithmetic clearly, but `memmove` is the safer standard-library answer.
+
+### Q170 - Countdown iterator state update
+
+**Question:** Implement `Iterator` for `Countdown` so it yields `current`, `current - 1`, down to `1`, and then stops.
+
+The iterator must store its changing state in the struct field:
+
+```rust
+struct Countdown {
+    current: i32,
+}
+```
+
+Inside `next`, access that field as:
+
+```rust
+self.current
+```
+
+Full answer:
+
+```rust
+impl Iterator for Countdown {
+    type Item = i32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current <= 0 {
+            None
+        } else {
+            let value = self.current;
+            self.current -= 1;
+            Some(value)
+        }
+    }
+}
+```
+
+`next` returns:
+
+```text
+Some(value) while there is another value
+None when the iterator is finished
+```
+
+For `Countdown { current: 3 }`, repeated calls produce:
+
+```text
+Some(3)
+Some(2)
+Some(1)
+None
+```
+
+The `self.` is required because `current` is a field on the `Countdown` object, not a local variable.
+
+### Q171 - Array parameter `sizeof` decay
+
+**Question:** The function tries to calculate an array length using `sizeof` after the array is passed to a function. Explain the bug and rewrite the function signature and call so the length is handled correctly.
+
+This function looks like it receives an array:
+
+```c
+void print_count(int values[]) {
+    size_t count = sizeof(values) / sizeof(values[0]);
+    printf("%zu\n", count);
+}
+```
+
+But in a function parameter, this:
+
+```c
+int values[]
+```
+
+is adjusted to:
+
+```c
+int *values
+```
+
+So inside `print_count`, `sizeof(values)` is the size of a pointer, not the size of the original array.
+
+Pass the length separately:
+
+```c
+#include <stdio.h>
+
+void print_count(const int values[], size_t count) {
+    printf("%zu\n", count);
+}
+
+int main(void) {
+    int values[5] = {1, 2, 3, 4, 5};
+    print_count(values, sizeof values / sizeof values[0]);
+}
+```
+
+In `main`, `values` is still a real array, so:
+
+```c
+sizeof values / sizeof values[0]
+```
+
+correctly calculates the number of elements. That count is then passed into the function.
+
+## Mock Paper 3 - C conversions, strings, macros, and Makefiles
+
+### Q172 - Unsigned wraparound after subtracting from zero
+
+**Question:** Trace the conversions in the program. State the values printed for `x`, `y`, and `u`, and explain the integer division and unsigned result.
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int a = 7;
+    int b = 2;
+    double x = a / b;
+    double y = (double)a / b;
+    unsigned int u = 0;
+
+    u = u - 1;
+    printf("x=%.1f y=%.1f u=%u\n", x, y, u);
+}
+```
+
+`a / b` uses integer division because both operands are `int`:
+
+```c
+7 / 2
+```
+
+gives `3`, not `3.5`. That `3` is then converted to `double`, so:
+
+```text
+x = 3.0
+```
+
+For `y`, this part changes the division:
+
+```c
+(double)a / b
+```
+
+Now one operand is `double`, so the division is floating-point:
+
+```text
+y = 3.5
+```
+
+The unsigned part is:
+
+```c
+unsigned int u = 0;
+u = u - 1;
+```
+
+Unsigned arithmetic wraps around modulo the range of the type. So subtracting `1` from unsigned zero gives the maximum `unsigned int` value, called `UINT_MAX` in C. On a common 32-bit `unsigned int`, that is:
+
+```text
+4294967295
+```
+
+So the common output is:
+
+```text
+x=3.0 y=3.5 u=4294967295
+```
+
+Do not describe `u` as becoming `-1`; an unsigned integer cannot store a negative value.
+
+### Q173 - Destination buffer too small in cleaned string copy
+
+**Question:** Complete `copy_clean` so it keeps only letters and digits, lowercases kept characters, writes a terminator, and returns `0` if the destination buffer is too small.
+
+The function must leave space for the final string terminator:
+
+```c
+'\0'
+```
+
+Before writing a kept character, check whether there is room for that character and the terminator:
+
+```c
+if (write + 1 >= dest_len) {
+    dest[write] = '\0';
+    return 0;
+}
+```
+
+One direct answer is:
+
+```c
+#include <ctype.h>
+#include <stddef.h>
+
+int copy_clean(char *dest, size_t dest_len, const char *src) {
+    size_t write = 0;
+
+    if (dest_len == 0) {
+        return 0;
+    }
+
+    for (size_t read = 0; src[read] != '\0'; read++) {
+        unsigned char ch = (unsigned char)src[read];
+
+        if (isalnum(ch)) {
+            if (write + 1 >= dest_len) {
+                dest[write] = '\0';
+                return 0;
+            }
+
+            dest[write++] = (char)tolower(ch);
+        }
+    }
+
+    dest[write] = '\0';
+    return 1;
+}
+```
+
+It is also valid to check letters and digits separately:
+
+```c
+for (size_t read = 0; src[read] != '\0'; read++) {
+    unsigned char ch = (unsigned char)src[read];
+    char out;
+
+    if (isalpha(ch)) {
+        out = (char)tolower(ch);
+    } else if (isdigit(ch)) {
+        out = (char)ch;
+    } else {
+        continue;
+    }
+
+    if (write + 1 >= dest_len) {
+        dest[write] = '\0';
+        return 0;
+    }
+
+    dest[write++] = out;
+}
+```
+
+The important rule is that skipped punctuation or spaces must not increment `write`. Only copied characters advance the output position.
+
+### Q174 - Whole-result parentheses in `SQUARE`
+
+**Question:** Fix the `SQUARE` macro so ordinary expressions are grouped correctly, then explain the remaining problem with `SQUARE(i++)`.
+
+The correct macro is:
+
+```c
+#define SQUARE(X) ((X) * (X))
+```
+
+The inner parentheses around each `X` protect arguments such as:
+
+```c
+SQUARE(a + b)
+```
+
+so the expansion behaves like:
+
+```c
+((a + b) * (a + b))
+```
+
+The outer parentheses protect the whole macro result when it is used inside a larger expression. Without the outer pair:
+
+```c
+#define SQUARE(X) (X) * (X)
+```
+
+this expression is wrong:
+
+```c
+10 / SQUARE(2)
+```
+
+because it expands like:
+
+```c
+10 / (2) * (2)
+```
+
+which is not the same as:
+
+```c
+10 / ((2) * (2))
+```
+
+The remaining problem is repeated evaluation. `SQUARE(i++)` expands to code that uses `i++` twice, so `i` can be incremented twice. A normal function or inline function is safer for arguments with side effects.
+
+### Q175 - Makefile default executable target first
+
+**Question:** For files `main.c`, `image.c`, and `image.h`, write Makefile rules for `main.o`, `image.o`, and the executable `viewer`. Then state what rebuilds after `image.h` changes.
+
+Put the executable target first, because the first target is the default target that runs when you type plain:
+
+```sh
+make
+```
+
+Correct rule order:
+
+```make
+CC = gcc
+CFLAGS = -std=c99 -Wall -Wextra
+
+viewer: main.o image.o
+<TAB>$(CC) $(CFLAGS) main.o image.o -o viewer
+
+main.o: main.c image.h
+<TAB>$(CC) $(CFLAGS) -c main.c -o main.o
+
+image.o: image.c image.h
+<TAB>$(CC) $(CFLAGS) -c image.c -o image.o
+```
+
+If you put `main.o` first, then plain `make` builds `main.o` as the default target. `make viewer` would still work, but the usual Makefile layout puts the executable first so plain `make` builds the program.
+
+After `image.h` changes:
+
+```text
+main.o rebuilds because it depends on image.h
+image.o rebuilds because it depends on image.h
+viewer relinks because its object-file prerequisites changed
+```
+
+## Mock Paper 3 - C++ build, polymorphism, algorithms, and function objects
+
+### Q176 - Minimal CMake project and build commands
+
+**Question:** For a C++ project containing `main.cpp` and `sensor.cpp`, write a minimal `CMakeLists.txt` and the two commands that configure into `build/` and then build the executable.
+
+Minimal `CMakeLists.txt`:
+
+```cmake
+cmake_minimum_required(VERSION 3.10)
+project(sensor_app)
+add_executable(sensor_app main.cpp sensor.cpp)
+```
+
+Line by line:
+
+```cmake
+cmake_minimum_required(VERSION 3.10)
+```
+
+means the project requires CMake 3.10 or newer.
+
+```cmake
+project(sensor_app)
+```
+
+sets the project name. The folder name does not have to match the project name.
+
+```cmake
+add_executable(sensor_app main.cpp sensor.cpp)
+```
+
+creates an executable target called `sensor_app` from `main.cpp` and `sensor.cpp`.
+
+The build commands are:
+
+```sh
+cmake -S . -B build
+cmake --build build
+```
+
+`-S .` says the source directory is the current directory containing `CMakeLists.txt`. `-B build` says the generated build files go in the `build` directory. `cmake --build build` then drives the generated build system to compile and link the executable.
+
+### Q177 - Base smart pointer polymorphic ownership
+
+**Question:** Complete the base class interface and the vector insertion so a `TemperatureSensor` is owned through a base-class smart pointer and read polymorphically.
+
+The base class needs a virtual interface:
+
+```cpp
+class Sensor {
+public:
+    virtual ~Sensor() = default;
+    virtual double read() const = 0;
+};
+```
+
+`read` is virtual so this call:
+
+```cpp
+sensor->read()
+```
+
+runs `TemperatureSensor::read()` even though `sensor` is a `std::unique_ptr<Sensor>`.
+
+The virtual destructor is needed because the object is owned through a base-class smart pointer:
+
+```cpp
+std::unique_ptr<Sensor>
+```
+
+When that smart pointer is destroyed, deletion happens through the base type. A virtual destructor makes sure the full derived object is destroyed correctly.
+
+The insertion is:
+
+```cpp
+sensors.push_back(std::make_unique<TemperatureSensor>(7, 21.5));
+```
+
+Full relevant answer:
+
+```cpp
+class Sensor {
+public:
+    virtual ~Sensor() = default;
+    virtual double read() const = 0;
+};
+
+sensors.push_back(std::make_unique<TemperatureSensor>(7, 21.5));
+```
+
+### Q178 - `binary_search` searched value and comparator
+
+**Question:** The vector is sorted largest first. Complete the `binary_search` call correctly and explain why the same ordering rule is needed.
+
+The vector is sorted with:
+
+```cpp
+std::greater<int>{}
+```
+
+so the binary search must use the same comparator. You also need to include the value being searched for.
+
+Correct call:
+
+```cpp
+bool found = std::binary_search(
+    scores.begin(),
+    scores.end(),
+    80,
+    std::greater<int>{}
+);
+```
+
+The arguments are:
+
+```text
+scores.begin()         start of the sorted range
+scores.end()           one past the end of the sorted range
+80                     value being searched for
+std::greater<int>{}    ordering rule used by the sorted range
+```
+
+`binary_search` only works correctly if the range is sorted according to the same ordering rule that the search uses. Since the vector was sorted largest first, the default ascending search would not match the range order.
+
+### Q179 - Function object predicate for `count_if`
+
+**Question:** Complete the function object so `count_if` counts readings whose value is above the stored limit.
+
+`std::count_if` takes:
+
+```text
+start iterator
+end iterator
+predicate
+```
+
+The predicate is a true/false test. Here the predicate object is:
+
+```cpp
+Above{20.0}
+```
+
+That creates an `Above` object whose stored `limit` is `20.0`. `count_if` then calls that object for each `Reading`.
+
+Make `Above` callable by defining `operator()`:
+
+```cpp
+struct Above {
+    double limit;
+
+    bool operator()(const Reading& reading) const {
+        return reading.value > limit;
+    }
+};
+```
+
+Conceptually, `count_if` does something like:
+
+```cpp
+int count = 0;
+
+for (auto it = readings.begin(); it != readings.end(); ++it) {
+    if (predicate(*it)) {
+        count++;
+    }
+}
+```
+
+So `Above{20.0}` is not itself a function. It is a function object: an object that can be called like a function because it has `operator()`.
+
+For the given readings, values `22.5` and `25.0` are above `20.0`, so the count is `2`.
+
+## Mock Paper 3 - Rust ownership, traits, iterators, parsing, and tests
+
+### Q180 - Borrowing `String` so the caller can still print it
+
+**Question:** Fix the code so `name` can still be printed after calculating its length. Use borrowing rather than cloning.
+
+The original function takes ownership of the `String`:
+
+```rust
+fn label_len(label: String) -> usize {
+    label.len()
+}
+```
+
+So this call moves `name`:
+
+```rust
+let n = label_len(name);
+```
+
+After a move, `name` cannot be printed.
+
+Borrow the text instead:
+
+```rust
+fn label_len(label: &str) -> usize {
+    label.len()
+}
+
+fn main() {
+    let name = String::from("sensor");
+    let n = label_len(&name);
+    println!("{name} {n}");
+}
+```
+
+The important call is:
+
+```rust
+let n = label_len(&name);
+```
+
+`&name` borrows the `String`. Rust can then coerce `&String` to `&str`, and `name` is still owned by `main`, so it can be printed afterwards.
+
+### Q181 - Debug bound instead of Display
+
+**Question:** Fix the derive line and the generic bounds so the function can compare two values and print the matching value with debug formatting.
+
+This print uses debug formatting:
+
+```rust
+println!("{:?}", a);
+```
+
+So the needed trait is:
+
+```rust
+std::fmt::Debug
+```
+
+not `Display`.
+
+The comparison:
+
+```rust
+a == b
+```
+
+needs:
+
+```rust
+PartialEq
+```
+
+Full answer:
+
+```rust
+#[derive(Debug, PartialEq)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn show_if_same<T: PartialEq + std::fmt::Debug>(a: T, b: T) {
+    if a == b {
+        println!("{:?}", a);
+    }
+}
+```
+
+The `where` form is equivalent:
+
+```rust
+fn show_if_same<T>(a: T, b: T)
+where
+    T: PartialEq + std::fmt::Debug,
+{
+    if a == b {
+        println!("{:?}", a);
+    }
+}
+```
+
+### Q182 - First matching slice value with `find`
+
+**Question:** Complete `first_over_limit` so it returns the first value greater than `limit` from a slice, without explicit indexing.
+
+Use `find` because it returns the first item that matches:
+
+```rust
+fn first_over_limit(values: &[i32], limit: i32) -> Option<i32> {
+    values.iter().copied().find(|value| *value > limit)
+}
+```
+
+`values.iter()` gives borrowed values:
+
+```rust
+&i32
+```
+
+`.copied()` turns those borrowed `i32` values into copied `i32` values, so the function can return:
+
+```rust
+Option<i32>
+```
+
+instead of:
+
+```rust
+Option<&i32>
+```
+
+Inside `find`, the closure receives a reference to the current iterator item, so `value` is borrowed and this comparison dereferences it:
+
+```rust
+*value > limit
+```
+
+An equivalent closure pattern is:
+
+```rust
+values.iter().copied().find(|&value| value > limit)
+```
+
+Do not sort first. The question asks for the first matching value in the original slice order.
+
+### Q183 - Parsing `port=<number>` with `Result`
+
+**Question:** Complete `parse_port` for lines such as `port=8080`. It should reject a missing equals sign, the wrong key, and a bad integer using `Result`.
+
+The expected form is:
+
+```text
+port=<number>
+```
+
+Examples:
+
+```text
+port=8080   valid
+port=1111   valid
+por=111     wrong key
+port=abc    bad integer
+port8080    missing equals sign
+```
+
+Complete answer:
+
+```rust
+fn parse_port(line: &str) -> Result<u16, String> {
+    let (key, value) = line
+        .split_once('=')
+        .ok_or_else(|| "missing equals sign".to_string())?;
+
+    if key.trim() != "port" {
+        return Err("expected port key".to_string());
+    }
+
+    value
+        .trim()
+        .parse::<u16>()
+        .map_err(|_| "bad port".to_string())
+}
+```
+
+`split_once('=')` returns an `Option`. It is `Some((key, value))` if an equals sign exists, or `None` if it does not.
+
+`ok_or_else` converts that `Option` into a `Result`:
+
+```text
+Some(value) -> Ok(value)
+None        -> Err("missing equals sign")
+```
+
+The `?` returns that error early if there is no equals sign.
+
+The key check rejects anything where the part before `=` is not exactly `port` after trimming.
+
+The parse step returns `Result<u16, ParseIntError>`, but the function returns `Result<u16, String>`. `map_err` converts the parse error into a `String` error message.
+
+### Q184 - Unit tests with `super` and integration tests through public API
+
+**Question:** Given the library code, write one unit test that can call `helper` and one integration-test style assertion that uses only the public API.
+
+Unit tests placed inside the same module can access private items through:
+
+```rust
+use super::*;
+```
+
+The module needs braces:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn helper_adds_one() {
+        assert_eq!(helper(4), 5);
+    }
+}
+```
+
+An integration test in `tests/basic.rs` uses the crate like outside code. It cannot call private `helper`; it must use the public API:
+
+```rust
+use my_crate::double_after_help;
+
+#[test]
+fn public_api_doubles_after_help() {
+    assert_eq!(double_after_help(4), 10);
+}
+```
+
+Replace `my_crate` with the real crate name from `Cargo.toml`. The key idea is that integration tests import from the crate root and can only use `pub` items.
+
+## Mock Paper 3 - Binary files, diamond inheritance, and buffering
+
+### Q185 - Binary record seek and read
+
+**Question:** Complete `read_record` so it seeks to record `index` in a binary file and reads exactly one `Record` into `out`.
+
+```c
+#include <stdio.h>
+
+typedef struct {
+    int id;
+    double temperature;
+} Record;
+
+int read_record(FILE *fp, long index, Record *out) {
+    /* complete */
+}
+```
+
+Correct answer:
+
+```c
+int read_record(FILE *fp, long index, Record *out) {
+    long offset = index * (long)sizeof *out;
+
+    if (fseek(fp, offset, SEEK_SET) != 0) {
+        return 0;
+    }
+
+    return fread(out, sizeof *out, 1, fp) == 1;
+}
+```
+
+`index` is a record number, not a byte number. If one `Record` is 16 bytes, record `0` starts at byte `0`, record `1` starts at byte `16`, and record `2` starts at byte `32`.
+
+That is why the offset is:
+
+```c
+index * sizeof *out
+```
+
+`sizeof *out` means "the size of the object that `out` points to", so here it is the size of one `Record`.
+
+`fseek(fp, offset, SEEK_SET)` moves the file position to `offset` bytes from the start of the file. If it fails, it returns non-zero, so the function returns `0`.
+
+`fread(out, sizeof *out, 1, fp)` then tries to read one full `Record` into the memory pointed at by `out`. It returns the number of complete items read. The function returns true only if that number is exactly `1`.
+
+### Q186 - Virtual inheritance in a diamond
+
+**Question:** In the diamond inheritance code below, rewrite only the `Left` and `Right` inheritance lines so `Bottom` has one shared `Base` subobject instead of two.
+
+```cpp
+class Base {
+public:
+    int id;
+};
+
+class Left : public Base {};
+class Right : public Base {};
+class Bottom : public Left, public Right {};
+```
+
+Correct answer:
+
+```cpp
+class Left : virtual public Base {};
+class Right : virtual public Base {};
+class Bottom : public Left, public Right {};
+```
+
+Without virtual inheritance, `Bottom` contains two separate `Base` subobjects:
+
+```text
+Bottom
+  Left
+    Base
+  Right
+    Base
+```
+
+So this is ambiguous:
+
+```cpp
+b.id = 3;
+```
+
+The compiler cannot know whether you mean the `Base::id` inside `Left` or the `Base::id` inside `Right`.
+
+One way to choose a path is qualified access:
+
+```cpp
+b.Left::id = 3;
+```
+
+But that still leaves two `Base` subobjects. Virtual inheritance changes the object layout so `Left` and `Right` share the same `Base` subobject inside `Bottom`.
+
+### Q187 - `setbuf` before output and `fflush`
+
+**Question:** In this program, show where `setbuf(stdout, buffer)` belongs if a custom stdout buffer is used, then add the call that forces `"Working..."` to appear immediately.
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    char buffer[BUFSIZ];
+
+    /* optional buffer setup */
+    printf("Working...");
+    /* force output before long task */
+
+    return 0;
+}
+```
+
+Correct answer:
+
+```c
+int main(void) {
+    char buffer[BUFSIZ];
+
+    setbuf(stdout, buffer);
+    printf("Working...");
+    fflush(stdout);
+
+    return 0;
+}
+```
+
+`setbuf(stdout, buffer)` tells `stdout` to use `buffer` as its storage for buffered output.
+
+It must be called before any output on that stream. So it belongs before the first `printf`, `puts`, `fprintf(stdout, ...)`, or any other write to `stdout`.
+
+`printf("Working...")` has no newline, so the text might stay in the buffer instead of appearing immediately.
+
+`fflush(stdout)` forces any buffered output waiting in `stdout` to be written immediately. That is the call needed before a long task if you want the progress message to appear straight away.

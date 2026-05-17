@@ -337,7 +337,7 @@ fn third_name(names: &[String]) -> &str {
         PageBreak(),
     ]
 
-    q4a = "Complete copy_slot so it copies one element inside a generic array from index from to index to. Explain why the element width is needed."
+    q4a = "Complete copy_slot so it copies the array element at source index from into destination index to. Explain why the element width is needed."
     q4b = "Complete the lambda so it reads limit, updates hits, and can be called for every value in the vector."
     q4c = "Complete the loop so repeated product names accumulate totals in the HashMap instead of replacing earlier totals."
     q4d = "Implement Iterator for Countdown so it yields current, current - 1, down to 1, and then stops."
