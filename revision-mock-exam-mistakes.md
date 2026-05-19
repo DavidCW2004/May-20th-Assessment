@@ -587,7 +587,7 @@ Executable:
 viewer
 ```
 
-### Q176 [] - Minimal CMake project and build commands
+### Q176 [X] - Minimal CMake project and build commands
 
 **Source:** ECM2433 Mock Paper 3, Question 2(a)
 
@@ -696,7 +696,7 @@ fn main() {
 }
 ```
 
-### Q181 [] - Debug bound instead of Display
+### Q181 [X] - Debug bound instead of Display
 
 **Source:** ECM2433 Mock Paper 3, Question 3(b)
 
@@ -755,7 +755,7 @@ pub fn double_after_help(n: i32) -> i32 {
 }
 ```
 
-### Q185 [] - Binary record seek and read
+### Q185 [X] - Binary record seek and read
 
 **Source:** ECM2433 Mock Paper 3, Question 4(a)
 
@@ -813,7 +813,7 @@ int main(void) {
 
 ## Ollie Mock Paper 2
 
-### Q188 [] - Off-by-one heap write and AddressSanitizer report
+### Q188 [X] - Off-by-one heap write and AddressSanitizer report
 
 **Source:** Ollie Mock Paper 2, Question 1(a)
 
@@ -843,7 +843,7 @@ extern "C" {
 }
 ```
 
-### Q190 [] - Generic byte swap with `void *`
+### Q190 [X] - Generic byte swap with `void *`
 
 **Source:** Ollie Mock Paper 2, Question 1(d)
 
@@ -857,7 +857,7 @@ void swap_anything(void *p, void *q, size_t size) {
 }
 ```
 
-### Q191 [] - Safe string input width and terminator space
+### Q191 [X] - Safe string input width and terminator space
 
 **Source:** Ollie Mock Paper 2, Question 1(e)
 
@@ -878,7 +878,7 @@ void print(int value);
 void print(double value);
 ```
 
-### Q193 [] - `std::cin` token extraction and `getline`
+### Q193 [X] - `std::cin` token extraction and `getline`
 
 **Source:** Ollie Mock Paper 2, Question 2(c)
 
@@ -906,7 +906,7 @@ struct Student {
 std::vector<Student> students;
 ```
 
-### Q195 [] - `Pair<T>` constructor and `are_equal`
+### Q195 [X] - `Pair<T>` constructor and `are_equal`
 
 **Source:** Ollie Mock Paper 2, Question 2(e)
 
@@ -930,7 +930,7 @@ fn find_task(tasks: &[String], keyword: &str) -> /* return type */ {
 }
 ```
 
-### Q197 [] - Interior mutability with `Arc<Mutex<T>>`
+### Q197 [X] - Interior mutability with `Arc<Mutex<T>>`
 
 **Source:** Ollie Mock Paper 2, Question 3(b)
 
@@ -946,7 +946,7 @@ let mut value = shared.lock().unwrap();
 *value += 1;
 ```
 
-### Q198 [] - Borrowed `Vec` element before `push`
+### Q198 [X] - Borrowed `Vec` element before `push`
 
 **Source:** Ollie Mock Paper 2, Question 3(c)
 
@@ -961,7 +961,7 @@ fn main() {
 }
 ```
 
-### Q199 [] - Deref coercion from `Box<Song>` to `Song`
+### Q199 [X] - Deref coercion from `Box<Song>` to `Song`
 
 **Source:** Ollie Mock Paper 2, Question 3(e)
 
@@ -994,7 +994,7 @@ fn read_count(text: &str) -> Result<i32, std::num::ParseIntError> {
 }
 ```
 
-### Q201 [] - Smart pointers as RAII owners
+### Q201 [X] - Smart pointers as RAII owners
 
 **Source:** Ollie Mock Paper 2, Question 4(b)
 
@@ -1028,7 +1028,7 @@ for id in 0..3 {
 }
 ```
 
-### Q203 [] - `operator+` return type and `const`
+### Q203 [X] - `operator+` return type and `const`
 
 **Source:** Ollie Mock Paper 2, Question 4(d)
 
@@ -1041,7 +1041,7 @@ public:
 };
 ```
 
-### Q204 [] - Row-major 2D array offset
+### Q204 [X] - Row-major 2D array offset
 
 **Source:** Ollie Mock Paper 3, Question 1(b)
 
@@ -1051,7 +1051,7 @@ public:
 int A[3][4];
 ```
 
-### Q205 [] - Pointer-arithmetic string reverse bounds
+### Q205 [X] - Pointer-arithmetic string reverse bounds
 
 **Source:** Ollie Mock Paper 3, Question 1(c)
 
@@ -1070,7 +1070,7 @@ void reverse_string(char *s) {
 }
 ```
 
-### Q206 [] - Wild pointer, dangling pointer, and Valgrind reports
+### Q206 [X] - Wild pointer, dangling pointer, and Valgrind reports
 
 **Source:** Ollie Mock Paper 3, Question 1(d)
 
@@ -1081,7 +1081,7 @@ int *p;
 *p = 10;
 ```
 
-### Q207 [] - `stdout` versus `stderr`
+### Q207 [X] - `stdout` versus `stderr`
 
 **Source:** Ollie Mock Paper 3, Question 1(e)
 
@@ -1092,7 +1092,7 @@ fprintf(stdout, "Log\n");
 fprintf(stderr, "Error\n");
 ```
 
-### Q208 [] - Function overloading and name mangling
+### Q208 [X] - Function overloading and name mangling
 
 **Source:** Ollie Mock Paper 3, Question 2(b)
 
@@ -1133,7 +1133,7 @@ obj2 = /* transfer ownership from obj1 */;
 use std::sync::{Arc, Mutex};
 ```
 
-### Q212 [] - Folding the sum of squares
+### Q212 [X] - Folding the sum of squares
 
 **Source:** Ollie Mock Paper 3, Question 3(c)
 
@@ -1159,7 +1159,7 @@ fn print_label(label: &str) {
 }
 ```
 
-### Q214 [] - `unwrap` versus `expect`
+### Q214 [X] - `unwrap` versus `expect`
 
 **Source:** Ollie Mock Paper 3, Question 3(e)
 
@@ -1167,4 +1167,118 @@ fn print_label(label: &str) {
 
 ```rust
 let port = text.parse::<u16>().expect("port should be a valid number");
+```
+
+### Q215 [] - Multi-statement swap macro wrapper
+
+**Source:** ECM2433 Sample Paper, Question 1(b)
+
+**Redo question:** Write a `swap(a, b)` macro for two `int` lvalues. Make the macro safe to use as one statement after an `if` without braces.
+
+```c
+int x = 3;
+int y = 7;
+
+if (x < y)
+    swap(x, y);
+```
+
+### Q216 [] - Manual string duplication with `malloc`
+
+**Source:** ECM2433 Sample Paper, Question 1(c)
+
+**Redo question:** Given only the declarations below, allocate memory for `dup` and copy `str` into it. Do not use extra variables or string library functions.
+
+```c
+char str[] = "By Divine Aid";
+char *dup, *p, *q;
+```
+
+### Q217 [] - Static local variable lifetime and scope
+
+**Source:** ECM2433 Sample Paper, Question 1(e)
+
+**Redo question:** Explain what is different about a global variable and a static local variable inside a function. Include both where the static variable can be used and how long its value lasts.
+
+```c
+int global_count;
+
+void tick(void) {
+    static int local_count;
+    local_count++;
+}
+```
+
+### Q218 [] - `printf`, buffering, and `fflush`
+
+**Source:** ECM2433 Sample Paper, Question 1(f)
+
+**Redo question:** Explain why this loop may not show output immediately, then place the `fflush` call in the correct position so each printed value can be seen straight away.
+
+```c
+int i;
+for (i = 0; i < 10; i++)
+    printf("%d ", i);
+sleep(10);
+exit(0);
+```
+
+### Q219 [] - Controlled access with friends or accessors
+
+**Source:** ECM2433 Sample Paper, Question 2(d)
+
+**Redo question:** The time fields are private in `ClockType`. Give two mechanisms that would let another class obtain or change those values without simply making the fields public.
+
+```cpp
+class ClockType {
+    int hours;
+    int minutes;
+    int seconds;
+protected:
+    std::string maker;
+public:
+    long seconds_since_midnight() const;
+};
+```
+
+### Q220 [] - Manual indexing errors in C loops
+
+**Source:** ECM2433 Sample Paper, Question 3(c)
+
+**Redo question:** In the C loop below, name one manual-indexing mistake that Rust iteration avoids. Then state the type of `x` in the Rust loop.
+
+```c
+int arr[] = {1, 2, 3, 4, 5};
+for (int i = 0; i < 5; i++) {
+    printf("%d\n", arr[i]);
+}
+```
+
+```rust
+let arr = [1, 2, 3, 4, 5];
+for x in &arr {
+    println!("{}", x);
+}
+```
+
+### Q221 [] - RAII and Rust ownership rules
+
+**Source:** ECM2433 Sample Paper, Question 4(a)
+
+**Redo question:** Explain what RAII stands for and how it helps with resource cleanup in C++. Then state Rust's three ownership rules and explain when Rust checks ownership and borrowing rules.
+
+### Q222 [] - Return codes, exceptions, and Rust `Result`
+
+**Source:** ECM2433 Sample Paper, Question 4(b)
+
+**Redo question:** Compare C return-code errors, C++ exceptions, and Rust `Result`. Include why return codes can be missed, why exceptions can make control flow harder to follow, and what `?` does in the Rust function.
+
+```rust
+fn read_file(path: &str) -> Result<String, std::io::Error> {
+    let mut file = std::fs::File::open(path)?;
+    let mut contents = String::new();
+    use std::io::Read;
+    file.read_to_string(&mut contents)?;
+    Ok(contents)
+}
 ```

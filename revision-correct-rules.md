@@ -6973,3 +6973,309 @@ let port = text.parse::<u16>().expect("port should be a valid number");
 ```
 
 `expect` is better when the panic means a program assumption or invariant has been broken, because the message explains what assumption failed.
+
+### Q215 - Multi-statement swap macro wrapper
+
+**Question:** Write a `swap(a, b)` macro for two `int` lvalues. Make the macro safe to use as one statement after an `if` without braces.
+
+```c
+int x = 3;
+int y = 7;
+
+if (x < y)
+    swap(x, y);
+```
+
+A safe multi-statement macro uses `do { ... } while (0)`:
+
+```c
+#define swap(a, b) do { \
+    int tmp = (a);     \
+    (a) = (b);         \
+    (b) = tmp;         \
+} while (0)
+```
+
+The wrapper makes the whole macro behave like one statement. Without it, only the first statement may belong to an `if`, while the later assignments could run separately or break the matching `else`.
+
+### Q216 - Manual string duplication with `malloc`
+
+**Question:** Given only the declarations below, allocate memory for `dup` and copy `str` into it. Do not use extra variables or string library functions.
+
+```c
+char str[] = "By Divine Aid";
+char *dup, *p, *q;
+```
+
+One full pointer-based answer is:
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+for (p = str; *p; p++)
+    ;
+
+dup = malloc((size_t)(p - str + 1) * sizeof *dup);
+assert(dup != NULL);
+
+for (p = str, q = dup; *p; )
+    *q++ = *p++;
+
+*q = '\0';
+```
+
+The first loop moves `p` to the null terminator. Then `p - str` is the number of visible characters, and `+ 1` adds space for `'\0'`.
+
+The copy loop copies characters from `str` to `dup` using `p` and `q`. The loop stops before the terminator, so the final line writes the terminator explicitly.
+
+For this exact string, `malloc(14)` is enough, but the pointer-subtraction version shows the general calculation and matches the given `p` and `q` declarations.
+
+### Q217 - Static local variable lifetime and scope
+
+**Question:** Explain what is different about a global variable and a static local variable inside a function. Include both where the static variable can be used and how long its value lasts.
+
+```c
+int global_count;
+
+void tick(void) {
+    static int local_count;
+    local_count++;
+}
+```
+
+A global variable is declared outside functions and can be used from other code where its declaration is visible.
+
+A static local variable is declared inside a function, so its name is limited to that function:
+
+```c
+static int local_count;
+```
+
+Code outside `tick` cannot directly use `local_count`.
+
+However, the variable is not recreated from scratch on every call. It persists between function calls:
+
+```c
+tick(); /* local_count becomes 1 */
+tick(); /* same local_count becomes 2 */
+```
+
+So:
+
+```text
+static local = function scope, but lifetime for the whole program run
+```
+
+### Q218 - `printf`, buffering, and `fflush`
+
+**Question:** Explain why this loop may not show output immediately, then place the `fflush` call in the correct position so each printed value can be seen straight away.
+
+```c
+int i;
+for (i = 0; i < 10; i++)
+    printf("%d ", i);
+sleep(10);
+exit(0);
+```
+
+`printf` writes to the `stdout` stream. `stdout` is buffered, so the text may be held in memory before it appears on the terminal or in a redirected file.
+
+Because the output has spaces but no newline, it may not flush immediately on a line-buffered terminal.
+
+To force each value to appear immediately, `fflush(stdout)` must come after the `printf`:
+
+```c
+for (i = 0; i < 10; i++) {
+    printf("%d ", i);
+    fflush(stdout);
+}
+```
+
+Putting `fflush(stdout)` before `printf` flushes old buffered output, but it does not force the newly printed value to appear.
+
+### Q219 - Controlled access with friends or accessors
+
+**Question:** The time fields are private in `ClockType`. Give two mechanisms that would let another class obtain or change those values without simply making the fields public.
+
+```cpp
+class ClockType {
+    int hours;
+    int minutes;
+    int seconds;
+protected:
+    std::string maker;
+public:
+    long seconds_since_midnight() const;
+};
+```
+
+One mechanism is to provide public or protected getter and setter member functions:
+
+```cpp
+class ClockType {
+    int hours;
+public:
+    int getHours() const {
+        return hours;
+    }
+
+    void setHours(int h) {
+        hours = h;
+    }
+};
+```
+
+This keeps the data private while allowing controlled access.
+
+Another mechanism is friendship:
+
+```cpp
+class ClockType {
+    int hours;
+
+    friend class Watch;
+};
+```
+
+or:
+
+```cpp
+friend void adjust_time(ClockType& clock);
+```
+
+A friend function or friend class can access private members because `ClockType` has explicitly granted that access.
+
+Making the data public receives limited credit because it weakens encapsulation and lets outside code modify the time directly.
+
+### Q220 - Manual indexing errors in C loops
+
+**Question:** In the C loop below, name one manual-indexing mistake that Rust iteration avoids. Then state the type of `x` in the Rust loop.
+
+```c
+int arr[] = {1, 2, 3, 4, 5};
+for (int i = 0; i < 5; i++) {
+    printf("%d\n", arr[i]);
+}
+```
+
+```rust
+let arr = [1, 2, 3, 4, 5];
+for x in &arr {
+    println!("{}", x);
+}
+```
+
+A common C manual-indexing error is an off-by-one loop condition:
+
+```c
+for (int i = 0; i <= 5; i++)
+```
+
+That tries to read `arr[5]`, but the valid indexes are `0` to `4`.
+
+Another indexing-control error is forgetting to increment the index, incrementing it incorrectly, or using a hard-coded length that no longer matches the array.
+
+In the Rust loop:
+
+```rust
+for x in &arr
+```
+
+`x` has type:
+
+```rust
+&i32
+```
+
+That means each `x` is a borrowed `i32`.
+
+### Q221 - RAII and Rust ownership rules
+
+**Question:** Explain what RAII stands for and how it helps with resource cleanup in C++. Then state Rust's three ownership rules and explain when Rust checks ownership and borrowing rules.
+
+RAII stands for:
+
+```text
+Resource Acquisition Is Initialization
+```
+
+The idea is that a resource is acquired by an object during construction and released in the object's destructor:
+
+```cpp
+{
+    std::unique_ptr<int> p = std::make_unique<int>(5);
+} /* destructor runs here and releases the heap object */
+```
+
+This helps prevent leaks and double frees because cleanup is tied to object lifetime.
+
+Rust's three ownership rules are:
+
+```text
+1. Each value has an owner.
+2. There can only be one owner at a time.
+3. When the owner goes out of scope, the value is dropped.
+```
+
+Rust also has borrowing rules, such as shared references for reading and mutable references for changing. The borrow checker enforces ownership and borrowing rules at compile time.
+
+That is a key difference from C++ smart pointers: C++ RAII cleanup happens at runtime through destructors, while Rust rejects many invalid ownership and borrowing patterns before the program runs.
+
+Rust analogues:
+
+```text
+Box<T> = unique heap ownership, roughly like std::unique_ptr<T>
+Rc<T> = reference-counted shared ownership, roughly like std::shared_ptr<T> for single-threaded code
+Arc<T> = thread-safe reference-counted shared ownership
+```
+
+### Q222 - Return codes, exceptions, and Rust `Result`
+
+**Question:** Compare C return-code errors, C++ exceptions, and Rust `Result`. Include why return codes can be missed, why exceptions can make control flow harder to follow, and what `?` does in the Rust function.
+
+```rust
+fn read_file(path: &str) -> Result<String, std::io::Error> {
+    let mut file = std::fs::File::open(path)?;
+    let mut contents = String::new();
+    use std::io::Read;
+    file.read_to_string(&mut contents)?;
+    Ok(contents)
+}
+```
+
+With C return codes, the programmer has to check the return value manually:
+
+```c
+FILE *f = fopen("data.txt", "r");
+if (f == NULL) {
+    /* handle error */
+}
+```
+
+Problems include:
+
+```text
+the programmer may forget to check the return code
+the same return value may need to represent both success data and failure
+error information can be limited
+```
+
+C++ exceptions can carry error information and propagate automatically to a matching `catch` block. A disadvantage is that control flow can be harder to follow because execution can jump out of several function calls to a catch block. If an exception is not caught, the program terminates.
+
+Rust uses:
+
+```rust
+Result<T, E>
+```
+
+to make recoverable errors explicit in the return type.
+
+The `?` operator does this:
+
+```text
+if the value is Ok(value), unwrap value and continue
+if the value is Err(error), return that error early from the current function
+```
+
+So Rust gets concise error propagation, but the possibility of failure remains visible in the function signature.
