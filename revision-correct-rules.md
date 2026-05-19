@@ -5697,3 +5697,1279 @@ It must be called before any output on that stream. So it belongs before the fir
 `printf("Working...")` has no newline, so the text might stay in the buffer instead of appearing immediately.
 
 `fflush(stdout)` forces any buffered output waiting in `stdout` to be written immediately. That is the call needed before a long task if you want the progress message to appear straight away.
+
+## Ollie Mock Paper 2 - C memory, linkage, generic pointers, and input
+
+### Q188 - Off-by-one heap write and AddressSanitizer report
+
+**Question:** In the `manage_list` code below, identify the exact loop condition bug, name the memory error it causes, and explain what AddressSanitizer would report differently from a normal run.
+
+```c
+#include <stdlib.h>
+
+int *manage_list(int size) {
+    int *list = malloc(size * sizeof(int));
+    for (int i = 0; i <= size; i++) {
+        list[i] = i * 10;
+    }
+    return list;
+}
+```
+
+The bug is here:
+
+```c
+for (int i = 0; i <= size; i++)
+```
+
+It should be:
+
+```c
+for (int i = 0; i < size; i++)
+```
+
+If `size` integers are allocated, the valid indexes are:
+
+```text
+0 through size - 1
+```
+
+The original loop also writes:
+
+```c
+list[size]
+```
+
+That is one past the allocated heap array. This is a heap buffer overflow and gives undefined behaviour in C.
+
+With a normal build, the program might appear to work, crash, corrupt another value, or fail later in an unrelated place.
+
+With AddressSanitizer enabled, for example:
+
+```bash
+gcc -fsanitize=address -g -o app main.c
+```
+
+the invalid write is instrumented and should produce a clear report such as a heap-buffer-overflow diagnostic. The report often includes the bad address, the access size, and useful source location information if compiled with `-g`.
+
+### Q189 - `extern "C"` and C++ name mangling
+
+**Question:** In C++, explain what `extern "C"` does to name mangling and why it is needed when calling a function compiled from a C source file.
+
+```cpp
+extern "C" {
+    void c_function(void);
+}
+```
+
+C++ supports overloading, so the compiler often changes function names into linker symbols that include type information. This is name mangling.
+
+For example, C++ might internally represent:
+
+```cpp
+void c_function(void);
+```
+
+with a compiler-specific mangled symbol name.
+
+A C compiler does not use C++ name mangling. If a function is compiled from a `.c` file, the object file will contain a C-style symbol name.
+
+This declaration:
+
+```cpp
+extern "C" {
+    void c_function(void);
+}
+```
+
+tells the C++ compiler:
+
+```text
+Use C linkage for this declaration.
+Do not apply C++ name mangling to this function name.
+```
+
+That lets the linker match the C++ call to the symbol produced by the C compiler.
+
+Important: `extern "C"` is written in the C++ file or C++ header view. It is not C syntax.
+
+### Q190 - Generic byte swap with `void *`
+
+**Question:** Write `swap_anything` so it swaps two objects of unknown type by copying `size` bytes. Explain why `void *` cannot be directly dereferenced for this.
+
+```c
+#include <stddef.h>
+
+void swap_anything(void *p, void *q, size_t size) {
+    /* complete */
+}
+```
+
+Correct answer:
+
+```c
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+
+void swap_anything(void *p, void *q, size_t size) {
+    unsigned char *tmp = malloc(size);
+
+    if (tmp == NULL) {
+        return;
+    }
+
+    memcpy(tmp, p, size);
+    memcpy(p, q, size);
+    memcpy(q, tmp, size);
+
+    free(tmp);
+}
+```
+
+The swap pattern is:
+
+```text
+tmp = p
+p = q
+q = tmp
+```
+
+But because the function is generic, it does not know whether `p` and `q` point to `int`, `double`, a struct, or something else.
+
+That is why this is not valid:
+
+```c
+*p = *q;   /* invalid when p and q are void * */
+```
+
+`void *` means "pointer to some object of unknown type". C does not know the size or type of `*p`, so you cannot directly dereference a `void *`.
+
+Instead, copy exactly `size` bytes. `memcpy` treats the memory as raw bytes, so it works for any object representation as long as the caller passes the correct object size.
+
+### Q191 - Safe string input width and terminator space
+
+**Question:** A program reads into `char buffer[20]`. Explain why `scanf("%s", buffer)` is unsafe, give a width-limited `scanf` format that leaves space for the terminator, and give a safer `fgets` alternative.
+
+```c
+char buffer[20];
+```
+
+This is unsafe:
+
+```c
+scanf("%s", buffer);
+```
+
+`%s` reads a non-whitespace word, but it does not know how large `buffer` is. If the user types more characters than the array can hold, `scanf` writes past the end of the array. That is a buffer overflow.
+
+For `char buffer[20]`, the width-limited version is:
+
+```c
+scanf("%19s", buffer);
+```
+
+The width is `19`, not `20`, because C strings need a final null terminator:
+
+```text
+19 visible characters + '\0' = 20 chars total
+```
+
+A safer line-reading alternative is:
+
+```c
+fgets(buffer, sizeof buffer, stdin);
+```
+
+`fgets` is better when you want to bound input by the actual buffer size. It reads at most `sizeof buffer - 1` characters and then writes the null terminator.
+
+One difference is that `fgets` can keep the newline if there is room, so code may need to remove it afterward if required.
+
+### Q192 - Function overloading and mangled symbols
+
+**Question:** Explain function overloading in C++, then explain how the compiler/linker can distinguish these two functions at object-code level.
+
+```cpp
+void print(int value);
+void print(double value);
+```
+
+Function overloading means C++ can have multiple functions with the same name, as long as their parameter lists are different.
+
+These are different overloads:
+
+```cpp
+void print(int value);
+void print(double value);
+```
+
+When you call:
+
+```cpp
+print(3);
+```
+
+the compiler chooses the `int` overload.
+
+When you call:
+
+```cpp
+print(3.5);
+```
+
+the compiler chooses the `double` overload.
+
+At object-code/linker level, the two functions still need different symbol names. C++ compilers handle that with name mangling: the generated symbol name includes information such as the function name and parameter types.
+
+Conceptually:
+
+```text
+print(int)    -> unique symbol for the int version
+print(double) -> unique symbol for the double version
+```
+
+The exact mangled names are compiler-specific. The important idea is that the linker does not just see two identical `print` symbols.
+
+### Q193 - `std::cin` token extraction and `getline`
+
+**Question:** For the input `21 Computer Science`, explain why `std::cin >> age >> course` stores only `"Computer"` in `course`, then write the corrected code that reads the full course line.
+
+```cpp
+int age;
+std::string course;
+
+std::cin >> age >> course;
+```
+
+`std::cin >> course` reads one whitespace-separated token.
+
+For this input:
+
+```text
+21 Computer Science
+```
+
+the extraction does this:
+
+```text
+age    = 21
+course = "Computer"
+```
+
+`"Science"` is left unread because the extraction into a `std::string` stops at whitespace.
+
+Use `std::getline` to read a full line:
+
+```cpp
+#include <iostream>
+#include <limits>
+#include <string>
+
+int age;
+std::string course;
+
+std::cin >> age;
+std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+std::getline(std::cin, course);
+```
+
+The `ignore` call removes the newline left after reading `age`. Without it, `getline` might immediately read the rest of that line, which can be empty.
+
+### Q194 - Student sort lambda ordering
+
+**Question:** Sort the students by mark descending, then by name ascending when marks are equal. Use `std::sort` with a lambda comparator.
+
+```cpp
+struct Student {
+    std::string name;
+    int mark;
+};
+
+std::vector<Student> students;
+```
+
+Correct answer:
+
+```cpp
+#include <algorithm>
+#include <string>
+#include <vector>
+
+std::sort(students.begin(), students.end(),
+    [](const Student& a, const Student& b) {
+        if (a.mark != b.mark) {
+            return a.mark > b.mark;
+        }
+
+        return a.name < b.name;
+    });
+```
+
+The comparator returns `true` when `a` should come before `b`.
+
+For the mark:
+
+```cpp
+return a.mark > b.mark;
+```
+
+This puts higher marks first.
+
+For equal marks:
+
+```cpp
+return a.name < b.name;
+```
+
+This puts names in ascending alphabetical order.
+
+Use `const Student&` so the comparator does not copy each student and does not modify them.
+
+### Q195 - `Pair<T>` constructor and `are_equal`
+
+**Question:** Define a simple `Pair<T>` class with two stored `T` values, a constructor that initialises both values, and an `are_equal()` method that compares them with `==`.
+
+Correct answer:
+
+```cpp
+template<typename T>
+class Pair {
+    T first;
+    T second;
+
+public:
+    Pair(T first, T second)
+        : first(first), second(second) {}
+
+    bool are_equal() const {
+        return first == second;
+    }
+};
+```
+
+The constructor is needed so a `Pair<T>` object can be created with two initial values:
+
+```cpp
+Pair<int> pair(4, 4);
+```
+
+This constructor:
+
+```cpp
+Pair(T first, T second)
+    : first(first), second(second) {}
+```
+
+initialises the two data members.
+
+`are_equal()` is a normal member function:
+
+```cpp
+bool are_equal() const {
+    return first == second;
+}
+```
+
+It uses the equality operator:
+
+```cpp
+first == second
+```
+
+So `T` must support `operator==`. For built-in types like `int`, that already exists. For a custom class, that class may need to define `operator==`.
+
+### Q196 - Task search result and substring matching
+
+**Question:** Complete `find_task` so it searches borrowed task strings for a keyword appearing inside the task text, returns a result that can represent no match, and then handle the result with `match`.
+
+```rust
+fn find_task(tasks: &[String], keyword: &str) -> Option<usize> {
+    for (index, task) in tasks.iter().enumerate() {
+        if task.contains(keyword) {
+            return Some(index);
+        }
+    }
+
+    None
+}
+
+match find_task(&tasks, "urgent") {
+    Some(index) => println!("found at {index}"),
+    None => println!("not found"),
+}
+```
+
+The return type is:
+
+```rust
+Option<usize>
+```
+
+because the keyword might not be found. A found index is returned as:
+
+```rust
+Some(index)
+```
+
+and no match is returned as:
+
+```rust
+None
+```
+
+Use:
+
+```rust
+tasks.iter().enumerate()
+```
+
+because `tasks` is a borrowed slice. `.iter()` borrows each `String`, and `.enumerate()` adds the index.
+
+Use:
+
+```rust
+task.contains(keyword)
+```
+
+because the question is searching for a keyword inside the task text. `task == keyword` only works when the whole task is exactly equal to the keyword.
+
+### Q197 - Interior mutability with `Arc<Mutex<T>>`
+
+**Question:** Explain why this shared counter can be changed from more than one thread even though each thread only has a cloned shared owner.
+
+```rust
+use std::sync::{Arc, Mutex};
+
+let count = Arc::new(Mutex::new(0));
+let shared = Arc::clone(&count);
+
+let mut value = shared.lock().unwrap();
+*value += 1;
+```
+
+Interior mutability means a wrapper type lets code mutate the data inside it even when the outside value is shared.
+
+In this example:
+
+```rust
+Arc<Mutex<i32>>
+```
+
+has two jobs:
+
+- `Arc` gives shared ownership so multiple threads can own handles to the same value.
+- `Mutex` protects the inner value and only gives mutable access after the lock is acquired.
+
+This line locks the mutex:
+
+```rust
+let mut value = shared.lock().unwrap();
+```
+
+`value` is a guard that behaves like a mutable reference to the inner integer. That is why the update uses dereferencing:
+
+```rust
+*value += 1;
+```
+
+The mutation is allowed because the `Mutex` enforces the access rule at runtime: only one thread can hold the mutable lock at a time.
+
+### Q198 - Borrowed `Vec` element before `push`
+
+**Question:** Explain why this Rust code is rejected. Identify what `r1` borrows, what access `push` needs, and why `Vec` reallocation matters.
+
+```rust
+fn main() {
+    let mut tasks = vec![String::from("Task 1")];
+    let r1 = &tasks[0];
+    tasks.push(String::from("Task 2"));
+    println!("{}", r1);
+}
+```
+
+This line creates an immutable reference to an element inside the vector:
+
+```rust
+let r1 = &tasks[0];
+```
+
+So `r1` borrows part of `tasks`.
+
+This line tries to mutate the vector:
+
+```rust
+tasks.push(String::from("Task 2"));
+```
+
+`push` requires mutable access because it changes the vector. Rust rejects this because `r1` is still used later:
+
+```rust
+println!("{}", r1);
+```
+
+There is also a memory-safety reason. A `Vec` stores its elements in a buffer. If `push` needs more capacity, the vector may reallocate and move its elements to a new memory location. That could leave `r1` pointing at the old location. Rust prevents that situation at compile time.
+
+One safe fix is to use the reference before pushing:
+
+```rust
+let r1 = &tasks[0];
+println!("{}", r1);
+tasks.push(String::from("Task 2"));
+```
+
+Another safe fix is to clone the string if it must be kept independently:
+
+```rust
+let r1 = tasks[0].clone();
+tasks.push(String::from("Task 2"));
+println!("{}", r1);
+```
+
+### Q199 - Deref coercion from `Box<Song>` to `Song`
+
+**Question:** Given a function that reads a `Song` by reference, show how a boxed song can be passed to it and explain why Rust accepts the call.
+
+```rust
+struct Song {
+    title: String,
+}
+
+fn print_song(song: &Song) {
+    println!("{}", song.title);
+}
+
+let song = Box::new(Song {
+    title: String::from("Intro"),
+});
+
+print_song(&song);
+```
+
+`Box<Song>` owns a `Song` on the heap.
+
+The function expects:
+
+```rust
+&Song
+```
+
+The expression:
+
+```rust
+&song
+```
+
+starts as a borrowed box:
+
+```rust
+&Box<Song>
+```
+
+Rust can deref-coerce that to:
+
+```rust
+&Song
+```
+
+because `Box<T>` implements `Deref<Target = T>`. In practical terms, if a function needs `&Song`, Rust can look through the `Box<Song>` and borrow the inner `Song`.
+
+You can also write the dereference explicitly:
+
+```rust
+print_song(&*song);
+```
+
+but the normal idiomatic call is:
+
+```rust
+print_song(&song);
+```
+
+### Q200 - Rust `?` operator error propagation
+
+**Question:** In the function below, explain exactly what `?` does when `parse` returns `Ok(value)` and what it does when `parse` returns `Err(error)`.
+
+```rust
+fn read_count(text: &str) -> Result<i32, std::num::ParseIntError> {
+    let count = text.parse::<i32>()?;
+    Ok(count + 1)
+}
+```
+
+The expression:
+
+```rust
+text.parse::<i32>()
+```
+
+returns:
+
+```rust
+Result<i32, std::num::ParseIntError>
+```
+
+The `?` handles that `Result`.
+
+If parsing succeeds:
+
+```rust
+Ok(value)
+```
+
+then `?` unwraps the `Ok` and gives the inner value to `count`.
+
+If parsing fails:
+
+```rust
+Err(error)
+```
+
+then `?` returns that error early from `read_count`. The rest of the function does not run.
+
+So this line:
+
+```rust
+let count = text.parse::<i32>()?;
+```
+
+means:
+
+```text
+try to parse an i32;
+if it works, store the i32 in count;
+if it fails, return the parse error from this function immediately.
+```
+
+That is why the function itself must return a compatible `Result`:
+
+```rust
+Result<i32, std::num::ParseIntError>
+```
+
+### Q201 - Smart pointers as RAII owners
+
+**Question:** Explain why `std::unique_ptr` is a smart pointer and what happens to the owned object when `sensor` goes out of scope.
+
+```cpp
+#include <memory>
+
+std::unique_ptr<Sensor> sensor =
+    std::make_unique<TemperatureSensor>("Lab", 21.5);
+```
+
+A smart pointer is an object that behaves like a pointer but also manages a resource automatically.
+
+`std::unique_ptr` is a RAII object:
+
+```text
+Resource Acquisition Is Initialization
+```
+
+That means the pointer object owns the heap allocation, and its destructor releases that allocation automatically.
+
+In this example:
+
+```cpp
+std::unique_ptr<Sensor> sensor
+```
+
+owns a heap object created by:
+
+```cpp
+std::make_unique<TemperatureSensor>("Lab", 21.5)
+```
+
+When `sensor` goes out of scope, its destructor runs and deletes the owned object automatically. You do not write:
+
+```cpp
+delete sensor;
+```
+
+`unique_ptr` also represents exclusive ownership. It cannot be copied, because that would create two owners for the same object. It can be moved to transfer ownership.
+
+### Q202 - Moving a channel sender into a spawned thread
+
+**Question:** Complete the worker body so each spawned thread owns its cloned sender and sends `id * 10` back to the receiver. Then explain why the sender clone is moved into the closure.
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+let (tx, rx) = mpsc::channel();
+
+for id in 0..3 {
+    let worker_tx = tx.clone();
+
+    thread::spawn(move || {
+        worker_tx.send(id * 10).unwrap();
+    });
+}
+```
+
+`mpsc` means:
+
+```text
+multiple producer, single consumer
+```
+
+Each worker needs its own sending handle, so the sender is cloned:
+
+```rust
+let worker_tx = tx.clone();
+```
+
+The closure uses `move`:
+
+```rust
+thread::spawn(move || {
+    worker_tx.send(id * 10).unwrap();
+});
+```
+
+because a spawned thread may outlive the function that created it. The thread must own the values it uses, including `worker_tx` and `id`.
+
+The send operation is:
+
+```rust
+worker_tx.send(id * 10).unwrap();
+```
+
+`send` returns a `Result` because sending can fail if the receiver has been dropped. In simple exam code, `.unwrap()` is often used to say the send is expected to succeed.
+
+In a full receive loop, you usually drop the original sender after spawning workers:
+
+```rust
+drop(tx);
+```
+
+That lets:
+
+```rust
+for value in rx
+```
+
+finish once all sender clones have been dropped.
+
+### Q203 - `operator+` return type and `const`
+
+**Question:** Give the member-function prototype for adding integer seconds to a `MyTime` with `operator+`, then explain why it returns `MyTime` and why the function should be `const`.
+
+```cpp
+class MyTime {
+public:
+    MyTime operator+(int seconds) const;
+};
+```
+
+As a member operator, the left-hand operand is the current object:
+
+```cpp
+now + 30
+```
+
+is interpreted like:
+
+```cpp
+now.operator+(30)
+```
+
+The function takes only the right-hand operand:
+
+```cpp
+int seconds
+```
+
+It returns:
+
+```cpp
+MyTime
+```
+
+because `operator+` should produce a new `MyTime` value:
+
+```cpp
+MyTime later = now + 30;
+```
+
+The original `now` should not be changed by `+`. If the original object should be changed, the more appropriate operator is:
+
+```cpp
+operator+=
+```
+
+The trailing `const`:
+
+```cpp
+MyTime operator+(int seconds) const;
+```
+
+means the function promises not to mutate the left-hand `MyTime` object. It also allows the operator to be used on `const MyTime` objects.
+
+### Q204 - Row-major 2D array offset
+
+**Question:** For the declaration below, calculate the offset in number of integers from the start of the array to `A[2][1]`. Explain why the number of columns matters.
+
+```c
+int A[3][4];
+```
+
+This is a declaration:
+
+```c
+int A[3][4];
+```
+
+It creates an array with:
+
+```text
+3 rows
+4 columns per row
+```
+
+C stores this array in row-major order, meaning it stores all of row 0, then all of row 1, then all of row 2.
+
+The memory order is:
+
+```text
+offset 0: A[0][0]
+offset 1: A[0][1]
+offset 2: A[0][2]
+offset 3: A[0][3]
+offset 4: A[1][0]
+offset 5: A[1][1]
+offset 6: A[1][2]
+offset 7: A[1][3]
+offset 8: A[2][0]
+offset 9: A[2][1]
+```
+
+The formula is:
+
+```text
+offset = row * number_of_columns + column
+```
+
+For `A[2][1]`:
+
+```text
+offset = 2 * 4 + 1
+offset = 9
+```
+
+The number of columns matters because each previous row contains 4 integers. To reach row 2, you skip two full rows:
+
+```text
+2 * 4 = 8 integers
+```
+
+Then you move one more column into row 2:
+
+```text
+8 + 1 = 9
+```
+
+### Q205 - Pointer-arithmetic string reverse bounds
+
+**Question:** Complete `reverse_string` using pointer arithmetic in the swap expressions. Make sure the loop does not run one swap too many and make sure the right-hand character expression uses the final valid index.
+
+```c
+#include <string.h>
+
+void reverse_string(char *s) {
+    size_t len = strlen(s);
+
+    for (size_t i = 0; i < len / 2; i++) {
+        char tmp = *(s + i);
+        *(s + i) = *(s + len - 1 - i);
+        *(s + len - 1 - i) = tmp;
+    }
+}
+```
+
+The loop condition must use:
+
+```c
+i < len / 2
+```
+
+not:
+
+```c
+i <= len / 2
+```
+
+because reversing only needs half the string's swaps. Using `<=` performs one extra swap and can start undoing the reversal.
+
+The right-hand character is:
+
+```c
+*(s + len - 1 - i)
+```
+
+not:
+
+```c
+*(s + len - i)
+```
+
+because the final valid character index is:
+
+```text
+len - 1
+```
+
+The string terminator is at index `len`, so `s + len` points at `'\0'`, not at the last visible character.
+
+### Q206 - Wild pointer, dangling pointer, and Valgrind reports
+
+**Question:** Explain why the code below uses a wild pointer, contrast that with a dangling pointer, and state what kind of memory access errors Valgrind can report.
+
+```c
+int *p;
+*p = 10;
+```
+
+This declaration:
+
+```c
+int *p;
+```
+
+creates a pointer but does not initialise it. Its stored address is unknown.
+
+This line:
+
+```c
+*p = 10;
+```
+
+dereferences that unknown address and tries to write `10` there. That is undefined behaviour.
+
+A wild pointer is an uninitialised pointer whose value does not point to a known valid object.
+
+A dangling pointer is different. It once pointed to a valid object, but that object is no longer alive, for example after `free`:
+
+```c
+int *q = malloc(sizeof *q);
+free(q);
+*q = 10;  /* dangling pointer use */
+```
+
+Valgrind can report invalid memory reads and invalid memory writes when the bad access happens at runtime. For heap errors, it may also show where the relevant allocation or free happened.
+
+### Q207 - `stdout` versus `stderr`
+
+**Question:** Explain why normal output should go to `stdout` but error diagnostics should go to `stderr`, even though both may appear in the terminal by default.
+
+```c
+fprintf(stdout, "Log\n");
+fprintf(stderr, "Error\n");
+```
+
+`stdout` is the standard output stream. It is for normal program output:
+
+```c
+fprintf(stdout, "Log\n");
+```
+
+`stderr` is the standard error stream. It is for error messages and diagnostics:
+
+```c
+fprintf(stderr, "Error\n");
+```
+
+Both may appear in the terminal by default, but they are separate streams. That means they can be redirected separately.
+
+For example, normal output might be saved to a file:
+
+```text
+program > output.txt
+```
+
+If errors are written to `stderr`, they can still appear on the terminal instead of being mixed into `output.txt`.
+
+So the reason to use `stderr` is:
+
+```text
+error diagnostics stay separate from normal output
+```
+
+### Q208 - Function overloading and name mangling
+
+**Question:** Explain how C++ can have both of these functions in one program. Include what the compiler does at source level and what name mangling does at object-code/linker level.
+
+```cpp
+void print(int value);
+void print(double value);
+```
+
+This is function overloading. C++ allows multiple functions to have the same name if their parameter lists are different.
+
+At source level, the compiler uses the argument type to choose the overload:
+
+```cpp
+print(3);    /* calls print(int) */
+print(3.5);  /* calls print(double) */
+```
+
+At object-code/linker level, the two functions still need different symbol names. C++ handles this with name mangling.
+
+Name mangling means the compiler encodes extra type information into the generated symbol name, so the linker sees two distinct functions rather than two identical `print` symbols.
+
+The exact mangled names are compiler-specific. The important point is:
+
+```text
+print(int)    -> one generated linker symbol
+print(double) -> a different generated linker symbol
+```
+
+### Q209 - `std::map` key lookup versus vector scan
+
+**Question:** Write C++ code to check whether student ID `1001` exists in the map and print the student's name if found. Then explain why this ordered map lookup is normally better than scanning a vector by ID.
+
+```cpp
+std::map<int, Student> students;
+```
+
+Correct lookup:
+
+```cpp
+auto it = students.find(1001);
+
+if (it != students.end()) {
+    std::cout << it->second.name << "\n";
+}
+```
+
+`students.find(1001)` searches by key.
+
+If the key is found, `it` points at the key-value pair.
+
+If the key is not found, `find` returns:
+
+```cpp
+students.end()
+```
+
+For a `std::map<int, Student>`, each map entry behaves like a pair:
+
+```text
+first  = key, the student ID
+second = value, the Student object
+```
+
+So:
+
+```cpp
+it->second.name
+```
+
+gets the `name` field from the matching `Student`.
+
+An ordered `std::map` is normally better than scanning a vector by ID because `std::map` lookup is logarithmic:
+
+```text
+O(log n)
+```
+
+A plain vector usually requires checking each element until the ID is found:
+
+```text
+O(n)
+```
+
+Do not use Rust-style iterator syntax such as `.iter().copied().find()` here; this is a C++ `std::map` question.
+
+### Q210 - Moving `std::unique_ptr` ownership
+
+**Question:** Explain why a class containing a `std::unique_ptr` cannot be copied by standard assignment, then write the expression that transfers ownership from `obj1` to `obj2`.
+
+```cpp
+obj2 = std::move(obj1);
+```
+
+`std::unique_ptr` represents unique ownership. Only one object should own the heap allocation at a time.
+
+Copying a `std::unique_ptr` is disabled because copying would create two owners for the same resource. That would make ownership unclear and could lead to double deletion.
+
+Ownership must be transferred with move semantics:
+
+```cpp
+obj2 = std::move(obj1);
+```
+
+The `std::` is needed because `move` is from the C++ standard library:
+
+```cpp
+#include <utility>
+```
+
+After the move, `obj2` owns the resource. `obj1` is still a valid object, but it no longer owns that pointer.
+
+### Q211 - `Arc`, `Rc`, and mutex poisoning
+
+**Question:** Explain why `Arc<Mutex<T>>` is used for shared state across threads. Include what `Arc` stands for, why `Rc` is not suitable across threads, and what happens if a thread panics while holding the mutex lock.
+
+```rust
+use std::sync::{Arc, Mutex};
+```
+
+`Arc` stands for:
+
+```text
+atomically reference counted
+```
+
+It gives shared ownership across threads by keeping a reference count with atomic operations.
+
+`Rc` also gives reference-counted shared ownership, but its count updates are not thread-safe. That is why `Rc<T>` is for single-threaded shared ownership, while `Arc<T>` can be used across threads.
+
+`Mutex<T>` protects the inner value so only one thread can access it mutably at a time:
+
+```rust
+let guard = shared.lock();
+```
+
+Mutex poisoning happens when a thread panics while holding the mutex lock. Later calls to `lock()` return an error, usually a `PoisonError`, to warn that the protected data may have been left in an inconsistent state.
+
+So:
+
+```text
+Arc = shared thread-safe ownership
+Mutex = controlled mutable access
+poisoning = panic happened while lock was held
+```
+
+### Q212 - Folding the sum of squares
+
+**Question:** Complete the iterator expression so it calculates the sum of the squares of all values. Use `iter` and `fold`, and make the closure return the next accumulator value.
+
+```rust
+let values = vec![2, 3, 4];
+
+let total = values
+    .iter()
+    .fold(0, |acc, n| acc + (*n * *n));
+```
+
+`values.iter()` gives references:
+
+```rust
+&i32
+```
+
+So `n` must be dereferenced:
+
+```rust
+*n
+```
+
+The square is:
+
+```rust
+*n * *n
+```
+
+The closure must return the next accumulator value:
+
+```rust
+acc + (*n * *n)
+```
+
+Do not write:
+
+```rust
+acc += *n
+```
+
+because that does not square the value, and assignment expressions return `()` rather than the new accumulator value.
+
+A `map` then `fold` version is also valid:
+
+```rust
+let total = values
+    .iter()
+    .map(|n| *n * *n)
+    .fold(0, |acc, square| acc + square);
+```
+
+In that version, `square` is already an `i32`, so it does not need dereferencing in `fold`.
+
+### Q213 - `String` ownership versus `&str` parameters
+
+**Question:** Explain which type owns text data and why a read-only function should usually take `&str` instead of `String`.
+
+```rust
+fn print_label(label: &str) {
+    println!("{label}");
+}
+```
+
+`String` owns growable UTF-8 text, usually stored on the heap:
+
+```rust
+let owned = String::from("sensor");
+```
+
+`&str` is a borrowed string slice. It is a non-owning view of UTF-8 text:
+
+```rust
+let borrowed: &str = "sensor";
+```
+
+A read-only function should usually take:
+
+```rust
+&str
+```
+
+because it can accept both string literals and borrowed `String` contents without taking ownership:
+
+```rust
+print_label("literal text");
+
+let name = String::from("owned text");
+print_label(&name);
+```
+
+If the function took `String`, calling it would move ownership into the function unless the caller cloned the string. Taking `&str` avoids that when the function only needs to read the text.
+
+### Q214 - `unwrap` versus `expect`
+
+**Question:** Explain the difference between `unwrap()` and `expect("message")` when an `Option` or `Result` is missing or failed, and say why `expect` can be better for debugging a broken assumption.
+
+```rust
+let port = text.parse::<u16>().expect("port should be a valid number");
+```
+
+Both `unwrap()` and `expect(...)` extract the success value:
+
+```rust
+Some(value)
+Ok(value)
+```
+
+If the value is missing or failed:
+
+```rust
+None
+Err(error)
+```
+
+both panic.
+
+The difference is the panic message.
+
+`unwrap()` uses a generic panic message:
+
+```rust
+let port = text.parse::<u16>().unwrap();
+```
+
+`expect("message")` lets you provide a custom message:
+
+```rust
+let port = text.parse::<u16>().expect("port should be a valid number");
+```
+
+`expect` is better when the panic means a program assumption or invariant has been broken, because the message explains what assumption failed.

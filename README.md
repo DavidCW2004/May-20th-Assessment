@@ -10,6 +10,7 @@
 - For mistake-log redo prompts, ask the user to apply the missed idea to a small concrete example instead of listing the missing phrases from the mark scheme.
 - When adding new mistake-log rows, append them to the end of the spreadsheet instead of inserting them into the middle of older rows.
 - Mock exam mistakes must go in `revision-mock-exam-mistakes.md`, not in `revision-mistake-log.xlsx`, so the relevant mock-exam code snippets can be included. Use question numbers that continue from the revision mistake sequence, and put the detailed correct answer/explanation in `revision-correct-rules.md`.
+- Do not include a `Mistake noted` section in `revision-mock-exam-mistakes.md`. Keep each entry focused on the source, redo question, and any relevant code snippet.
 - When adding a mock exam mistake, write the redo question around the specific thing the user got wrong rather than repeating the whole original question. Only use the full original-style question if the user says they got the entire question completely wrong.
 
 ## Topic Sheet Notes
@@ -35,7 +36,7 @@
 - Each main question should contain mixed subparts labelled `(a)`, `(b)`, `(c)`, etc., with marks shown at the end of each subpart and a total shown at the end of the main question, e.g. `(Total 25 marks)`.
 - The front page should follow the sample-paper style: module name, mock paper title, "The C Family", "Closed Book", materials/permitted-materials lines, guidelines, and exam instructions.
 - Keep the question section separate from the answer section. The question section should contain only questions, code snippets, marks, and totals.
-- Put all answers and mark schemes at the end of the paper, not throughout the question section. For every answered subpart, the answer section must use this exact structure: `(a) Question (4 marks): <repeat the original question prompt>` on one line, then `Answer: <answer or marking notes>` below it. Keep the same subpart letter and mark value as the question section.
+- Put all answers and mark schemes at the end of the paper, not throughout the question section. For every answered subpart, the answer section must use this exact structure: `(a) Question (4 marks): <repeat the original question prompt>` on one line, then `Answer: <answer or marking notes>` below it. The answer section must repeat the question and include any corresponding code needed to understand the answer, especially for inspect/fix/trace/complete-code tasks. Keep the same subpart letter and mark value as the question section.
 - Any question that asks the student to inspect, fix, trace, or complete code must include the corresponding code snippet in the paper.
 - Mock exam questions should test application and problem-solving. Avoid prompts that tell the student exactly what to include or only ask them to restate a rule.
 - Include a clear answer or mark scheme for every question.

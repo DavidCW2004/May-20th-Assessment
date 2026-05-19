@@ -455,7 +455,7 @@ fn third_name(names: &[String]) -> &str {
 }
 ```
 
-### Q169 [] - Generic byte copy with element width
+### Q169 [X] - Generic byte copy with element width
 
 **Source:** ECM2433 Mock Paper 2, Question 4(a)
 
@@ -602,7 +602,7 @@ Executable:
 sensor_app
 ```
 
-### Q177 [] - Base smart pointer polymorphic ownership
+### Q177 [X] - Base smart pointer polymorphic ownership
 
 **Source:** ECM2433 Mock Paper 3, Question 2(c)
 
@@ -635,7 +635,7 @@ for (const auto& sensor : sensors) {
 }
 ```
 
-### Q178 [] - `binary_search` searched value and comparator
+### Q178 [X] - `binary_search` searched value and comparator
 
 **Source:** ECM2433 Mock Paper 3, Question 2(d)
 
@@ -653,7 +653,7 @@ std::sort(scores.begin(), scores.end(), std::greater<int>{});
 bool found = std::binary_search(/* complete */);
 ```
 
-### Q179 [] - Function object predicate for `count_if`
+### Q179 [X] - Function object predicate for `count_if`
 
 **Source:** ECM2433 Mock Paper 3, Question 2(e)
 
@@ -715,7 +715,7 @@ fn show_if_same<T>(a: T, b: T) {
 }
 ```
 
-### Q182 [] - First matching slice value with `find`
+### Q182 [X] - First matching slice value with `find`
 
 **Source:** ECM2433 Mock Paper 3, Question 3(c)
 
@@ -727,7 +727,7 @@ fn first_over_limit(values: &[i32], limit: i32) -> Option<i32> {
 }
 ```
 
-### Q183 [] - Parsing `port=<number>` with `Result`
+### Q183 [X] - Parsing `port=<number>` with `Result`
 
 **Source:** ECM2433 Mock Paper 3, Question 3(d)
 
@@ -759,8 +759,6 @@ pub fn double_after_help(n: i32) -> i32 {
 
 **Source:** ECM2433 Mock Paper 3, Question 4(a)
 
-**Mistake noted:** Got completely wrong.
-
 **Redo question:** Complete `read_record` so it seeks to record `index` in a binary file and reads exactly one `Record` into `out`.
 
 ```c
@@ -776,11 +774,9 @@ int read_record(FILE *fp, long index, Record *out) {
 }
 ```
 
-### Q186 [] - Virtual inheritance in a diamond
+### Q186 [X] - Virtual inheritance in a diamond
 
 **Source:** ECM2433 Mock Paper 3, Question 4(b)
-
-**Mistake noted:** Did not put `virtual` after `class Left :` and `class Right :`.
 
 **Redo question:** In the diamond inheritance code below, rewrite only the `Left` and `Right` inheritance lines so `Bottom` has one shared `Base` subobject instead of two.
 
@@ -795,11 +791,9 @@ class Right : public Base {};
 class Bottom : public Left, public Right {};
 ```
 
-### Q187 [] - `setbuf` before output and `fflush`
+### Q187 [X] - `setbuf` before output and `fflush`
 
 **Source:** ECM2433 Mock Paper 3, Question 4(e)
-
-**Mistake noted:** Did not mention that `setbuf` must be called before any output on that stream.
 
 **Redo question:** In this program, show where `setbuf(stdout, buffer)` belongs if a custom stdout buffer is used, then add the call that forces `"Working..."` to appear immediately.
 
@@ -815,4 +809,362 @@ int main(void) {
 
     return 0;
 }
+```
+
+## Ollie Mock Paper 2
+
+### Q188 [] - Off-by-one heap write and AddressSanitizer report
+
+**Source:** Ollie Mock Paper 2, Question 1(a)
+
+**Redo question:** In the `manage_list` code below, identify the exact loop condition bug, name the memory error it causes, and explain what AddressSanitizer would report differently from a normal run.
+
+```c
+#include <stdlib.h>
+
+int *manage_list(int size) {
+    int *list = malloc(size * sizeof(int));
+    for (int i = 0; i <= size; i++) {
+        list[i] = i * 10;
+    }
+    return list;
+}
+```
+
+### Q189 [X] - `extern "C"` and C++ name mangling
+
+**Source:** Ollie Mock Paper 2, Question 1(c)
+
+**Redo question:** In C++, explain what `extern "C"` does to name mangling and why it is needed when calling a function compiled from a C source file.
+
+```cpp
+extern "C" {
+    void c_function(void);
+}
+```
+
+### Q190 [] - Generic byte swap with `void *`
+
+**Source:** Ollie Mock Paper 2, Question 1(d)
+
+**Redo question:** Write `swap_anything` so it swaps two objects of unknown type by copying `size` bytes. Explain why `void *` cannot be directly dereferenced for this.
+
+```c
+#include <stddef.h>
+
+void swap_anything(void *p, void *q, size_t size) {
+    /* complete */
+}
+```
+
+### Q191 [] - Safe string input width and terminator space
+
+**Source:** Ollie Mock Paper 2, Question 1(e)
+
+**Redo question:** A program reads into `char buffer[20]`. Explain why `scanf("%s", buffer)` is unsafe, give a width-limited `scanf` format that leaves space for the terminator, and give a safer `fgets` alternative.
+
+```c
+char buffer[20];
+```
+
+### Q192 [X] - Function overloading and mangled symbols
+
+**Source:** Ollie Mock Paper 2, Question 2(b)
+
+**Redo question:** Explain function overloading in C++, then explain how the compiler/linker can distinguish these two functions at object-code level.
+
+```cpp
+void print(int value);
+void print(double value);
+```
+
+### Q193 [] - `std::cin` token extraction and `getline`
+
+**Source:** Ollie Mock Paper 2, Question 2(c)
+
+**Redo question:** For the input `21 Computer Science`, explain why `std::cin >> age >> course` stores only `"Computer"` in `course`, then write the corrected code that reads the full course line.
+
+```cpp
+int age;
+std::string course;
+
+std::cin >> age >> course;
+```
+
+### Q194 [X] - Student sort lambda ordering
+
+**Source:** Ollie Mock Paper 2, Question 2(d)
+
+**Redo question:** Sort the students by mark descending, then by name ascending when marks are equal. Use `std::sort` with a lambda comparator.
+
+```cpp
+struct Student {
+    std::string name;
+    int mark;
+};
+
+std::vector<Student> students;
+```
+
+### Q195 [] - `Pair<T>` constructor and `are_equal`
+
+**Source:** Ollie Mock Paper 2, Question 2(e)
+
+**Redo question:** Define a simple `Pair<T>` class with two stored `T` values, a constructor that initialises both values, and an `are_equal()` method that compares them with `==`.
+
+### Q196 [X] - Task search result and substring matching
+
+**Source:** Ollie Mock Paper 2, Question 3(a)
+
+**Redo question:** Complete `find_task` so it searches borrowed task strings for a keyword appearing inside the task text, returns a result that can represent no match, and then handle the result with `match`.
+
+```rust
+fn find_task(tasks: &[String], keyword: &str) -> /* return type */ {
+    for /* index and task */ in /* iterator */ {
+        if /* keyword appears inside task */ {
+            /* return found index */
+        }
+    }
+
+    /* return no match */
+}
+```
+
+### Q197 [] - Interior mutability with `Arc<Mutex<T>>`
+
+**Source:** Ollie Mock Paper 2, Question 3(b)
+
+**Redo question:** Explain why this shared counter can be changed from more than one thread even though each thread only has a cloned shared owner.
+
+```rust
+use std::sync::{Arc, Mutex};
+
+let count = Arc::new(Mutex::new(0));
+let shared = Arc::clone(&count);
+
+let mut value = shared.lock().unwrap();
+*value += 1;
+```
+
+### Q198 [] - Borrowed `Vec` element before `push`
+
+**Source:** Ollie Mock Paper 2, Question 3(c)
+
+**Redo question:** Explain why this Rust code is rejected. Identify what `r1` borrows, what access `push` needs, and why `Vec` reallocation matters.
+
+```rust
+fn main() {
+    let mut tasks = vec![String::from("Task 1")];
+    let r1 = &tasks[0];
+    tasks.push(String::from("Task 2"));
+    println!("{}", r1);
+}
+```
+
+### Q199 [] - Deref coercion from `Box<Song>` to `Song`
+
+**Source:** Ollie Mock Paper 2, Question 3(e)
+
+**Redo question:** Given a function that reads a `Song` by reference, show how a boxed song can be passed to it and explain why Rust accepts the call.
+
+```rust
+struct Song {
+    title: String,
+}
+
+fn print_song(song: &Song) {
+    println!("{}", song.title);
+}
+
+let song = Box::new(Song {
+    title: String::from("Intro"),
+});
+```
+
+### Q200 [] - Rust `?` operator error propagation
+
+**Source:** Ollie Mock Paper 2, Question 4(a)
+
+**Redo question:** In the function below, explain exactly what `?` does when `parse` returns `Ok(value)` and what it does when `parse` returns `Err(error)`.
+
+```rust
+fn read_count(text: &str) -> Result<i32, std::num::ParseIntError> {
+    let count = text.parse::<i32>()?;
+    Ok(count + 1)
+}
+```
+
+### Q201 [] - Smart pointers as RAII owners
+
+**Source:** Ollie Mock Paper 2, Question 4(b)
+
+**Redo question:** Explain why `std::unique_ptr` is a smart pointer and what happens to the owned object when `sensor` goes out of scope.
+
+```cpp
+#include <memory>
+
+std::unique_ptr<Sensor> sensor =
+    std::make_unique<TemperatureSensor>("Lab", 21.5);
+```
+
+### Q202 [] - Moving a channel sender into a spawned thread
+
+**Source:** Ollie Mock Paper 2, Question 4(c)
+
+**Redo question:** Complete the worker body so each spawned thread owns its cloned sender and sends `id * 10` back to the receiver. Then explain why the sender clone is moved into the closure.
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+let (tx, rx) = mpsc::channel();
+
+for id in 0..3 {
+    let worker_tx = tx.clone();
+
+    thread::spawn(move || {
+        /* send id * 10 here */
+    });
+}
+```
+
+### Q203 [] - `operator+` return type and `const`
+
+**Source:** Ollie Mock Paper 2, Question 4(d)
+
+**Redo question:** Give the member-function prototype for adding integer seconds to a `MyTime` with `operator+`, then explain why it returns `MyTime` and why the function should be `const`.
+
+```cpp
+class MyTime {
+public:
+    /* prototype here */
+};
+```
+
+### Q204 [] - Row-major 2D array offset
+
+**Source:** Ollie Mock Paper 3, Question 1(b)
+
+**Redo question:** For the declaration below, calculate the offset in number of integers from the start of the array to `A[2][1]`. Explain why the number of columns matters.
+
+```c
+int A[3][4];
+```
+
+### Q205 [] - Pointer-arithmetic string reverse bounds
+
+**Source:** Ollie Mock Paper 3, Question 1(c)
+
+**Redo question:** Complete `reverse_string` using pointer arithmetic in the swap expressions. Make sure the loop does not run one swap too many and make sure the right-hand character expression uses the final valid index.
+
+```c
+#include <string.h>
+
+void reverse_string(char *s) {
+    size_t len = strlen(s);
+
+    for (size_t i = 0; /* condition */; i++) {
+        char tmp = /* left character */;
+        /* swap left and right characters */
+    }
+}
+```
+
+### Q206 [] - Wild pointer, dangling pointer, and Valgrind reports
+
+**Source:** Ollie Mock Paper 3, Question 1(d)
+
+**Redo question:** Explain why the code below uses a wild pointer, contrast that with a dangling pointer, and state what kind of memory access errors Valgrind can report.
+
+```c
+int *p;
+*p = 10;
+```
+
+### Q207 [] - `stdout` versus `stderr`
+
+**Source:** Ollie Mock Paper 3, Question 1(e)
+
+**Redo question:** Explain why normal output should go to `stdout` but error diagnostics should go to `stderr`, even though both may appear in the terminal by default.
+
+```c
+fprintf(stdout, "Log\n");
+fprintf(stderr, "Error\n");
+```
+
+### Q208 [] - Function overloading and name mangling
+
+**Source:** Ollie Mock Paper 3, Question 2(b)
+
+**Redo question:** Explain how C++ can have both of these functions in one program. Include what the compiler does at source level and what name mangling does at object-code/linker level.
+
+```cpp
+void print(int value);
+void print(double value);
+```
+
+### Q209 [] - `std::map` key lookup versus vector scan
+
+**Source:** Ollie Mock Paper 3, Question 2(c)
+
+**Redo question:** Write C++ code to check whether student ID `1001` exists in the map and print the student's name if found. Then explain why this ordered map lookup is normally better than scanning a vector by ID.
+
+```cpp
+std::map<int, Student> students;
+```
+
+### Q210 [] - Moving `std::unique_ptr` ownership
+
+**Source:** Ollie Mock Paper 3, Question 2(e)
+
+**Redo question:** Explain why a class containing a `std::unique_ptr` cannot be copied by standard assignment, then write the expression that transfers ownership from `obj1` to `obj2`.
+
+```cpp
+obj2 = /* transfer ownership from obj1 */;
+```
+
+### Q211 [] - `Arc`, `Rc`, and mutex poisoning
+
+**Source:** Ollie Mock Paper 3, Question 3(b)
+
+**Redo question:** Explain why `Arc<Mutex<T>>` is used for shared state across threads. Include what `Arc` stands for, why `Rc` is not suitable across threads, and what happens if a thread panics while holding the mutex lock.
+
+```rust
+use std::sync::{Arc, Mutex};
+```
+
+### Q212 [] - Folding the sum of squares
+
+**Source:** Ollie Mock Paper 3, Question 3(c)
+
+**Redo question:** Complete the iterator expression so it calculates the sum of the squares of all values. Use `iter` and `fold`, and make the closure return the next accumulator value.
+
+```rust
+let values = vec![2, 3, 4];
+
+let total = values
+    .iter()
+    .fold(0, |acc, n| /* next accumulator */);
+```
+
+### Q213 [] - `String` ownership versus `&str` parameters
+
+**Source:** Ollie Mock Paper 3, Question 3(d)
+
+**Redo question:** Explain which type owns text data and why a read-only function should usually take `&str` instead of `String`.
+
+```rust
+fn print_label(label: &str) {
+    println!("{label}");
+}
+```
+
+### Q214 [] - `unwrap` versus `expect`
+
+**Source:** Ollie Mock Paper 3, Question 3(e)
+
+**Redo question:** Explain the difference between `unwrap()` and `expect("message")` when an `Option` or `Result` is missing or failed, and say why `expect` can be better for debugging a broken assumption.
+
+```rust
+let port = text.parse::<u16>().expect("port should be a valid number");
 ```
