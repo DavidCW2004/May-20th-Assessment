@@ -981,7 +981,7 @@ let song = Box::new(Song {
 });
 ```
 
-### Q200 [] - Rust `?` operator error propagation
+### Q200 [X] - Rust `?` operator error propagation
 
 **Source:** Ollie Mock Paper 2, Question 4(a)
 
@@ -1007,7 +1007,7 @@ std::unique_ptr<Sensor> sensor =
     std::make_unique<TemperatureSensor>("Lab", 21.5);
 ```
 
-### Q202 [] - Moving a channel sender into a spawned thread
+### Q202 [X] - Moving a channel sender into a spawned thread
 
 **Source:** Ollie Mock Paper 2, Question 4(c)
 
@@ -1103,7 +1103,7 @@ void print(int value);
 void print(double value);
 ```
 
-### Q209 [] - `std::map` key lookup versus vector scan
+### Q209 [X] - `std::map` key lookup versus vector scan
 
 **Source:** Ollie Mock Paper 3, Question 2(c)
 
@@ -1113,7 +1113,7 @@ void print(double value);
 std::map<int, Student> students;
 ```
 
-### Q210 [] - Moving `std::unique_ptr` ownership
+### Q210 [X] - Moving `std::unique_ptr` ownership
 
 **Source:** Ollie Mock Paper 3, Question 2(e)
 
@@ -1123,7 +1123,7 @@ std::map<int, Student> students;
 obj2 = /* transfer ownership from obj1 */;
 ```
 
-### Q211 [] - `Arc`, `Rc`, and mutex poisoning
+### Q211 [X] - `Arc`, `Rc`, and mutex poisoning
 
 **Source:** Ollie Mock Paper 3, Question 3(b)
 
@@ -1147,7 +1147,7 @@ let total = values
     .fold(0, |acc, n| /* next accumulator */);
 ```
 
-### Q213 [] - `String` ownership versus `&str` parameters
+### Q213 [X] - `String` ownership versus `&str` parameters
 
 **Source:** Ollie Mock Paper 3, Question 3(d)
 
@@ -1169,7 +1169,7 @@ fn print_label(label: &str) {
 let port = text.parse::<u16>().expect("port should be a valid number");
 ```
 
-### Q215 [] - Multi-statement swap macro wrapper
+### Q215 [X] - Multi-statement swap macro wrapper
 
 **Source:** ECM2433 Sample Paper, Question 1(b)
 
@@ -1194,7 +1194,7 @@ char str[] = "By Divine Aid";
 char *dup, *p, *q;
 ```
 
-### Q217 [] - Static local variable lifetime and scope
+### Q217 [X] - Static local variable lifetime and scope
 
 **Source:** ECM2433 Sample Paper, Question 1(e)
 
@@ -1209,7 +1209,7 @@ void tick(void) {
 }
 ```
 
-### Q218 [] - `printf`, buffering, and `fflush`
+### Q218 [X] - `printf`, buffering, and `fflush`
 
 **Source:** ECM2433 Sample Paper, Question 1(f)
 
@@ -1223,7 +1223,7 @@ sleep(10);
 exit(0);
 ```
 
-### Q219 [] - Controlled access with friends or accessors
+### Q219 [X] - Controlled access with friends or accessors
 
 **Source:** ECM2433 Sample Paper, Question 2(d)
 
@@ -1241,7 +1241,7 @@ public:
 };
 ```
 
-### Q220 [] - Manual indexing errors in C loops
+### Q220 [X] - Manual indexing errors in C loops
 
 **Source:** ECM2433 Sample Paper, Question 3(c)
 

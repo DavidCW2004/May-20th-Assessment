@@ -935,6 +935,131 @@ let positives: Vec<(usize, i32)> = readings
     story.append(PageBreak())
 
 
+def add_remaining_rag_quick_hits(story: list):
+    story.append(p("Remaining RAG Quick Hits", "h1"))
+    story.append(
+        p(
+            "These are lower-density topics from the tracker that still need a quick memory hook before the exam.",
+            "note",
+        )
+    )
+    story.append(p("C basics, command line, and control flow", "h2"))
+    story.append(
+        bullets(
+            [
+                "C program layout: `#include` first, then declarations/functions, then `int main(void)` or `int main(int argc, char *argv[])`.",
+                "Blocks use `{ ... }`; statements usually end in semicolons; format specifiers must match values, e.g. `%d`, `%f`, `%zu`, `%s`.",
+                "Escape sequences include `\\n` for newline and `\\0` for the string terminator.",
+                "Automatic local variables usually live for the current block/function call; static local variables persist between calls.",
+                "Command-line arguments: `argc` is the count; `argv[0]` is the program name/path; `argv[1]` is the first user argument.",
+                "`atoi`/`atof` convert strings but have weak error reporting; `strtol` is better when validation matters.",
+                "Control flow patterns: `if`, `for`, and `while` are common for factorials, loops, and repeated approximation tasks.",
+                "Compile/link/run workflow: compile source to object files, link object files into an executable, then run the executable.",
+            ]
+        )
+    )
+    story.append(code(
+        r"""
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        return 1;
+    }
+    int n = atoi(argv[1]);
+    printf("%d\n", n);
+    return 0;
+}
+"""
+    ))
+    story.append(p("C structs, unions, enums, and debugging tools", "h2"))
+    story.append(
+        bullets(
+            [
+                "`struct` groups fields together; use `.` for objects and `->` through pointers.",
+                "`typedef struct Node { ... } Node;` lets you write `Node *root` instead of `struct Node *root`.",
+                "`enum` gives named integer constants. A `union` lets fields share the same memory; only one member should be treated as active.",
+                "Linked-list stack practice usually pushes and pops at the head because that is O(1).",
+                "Valgrind and AddressSanitizer help catch invalid reads, invalid writes, use-after-free, leaks, and some out-of-bounds accesses.",
+            ]
+        )
+    )
+    story.append(p("C++ moving-from-C details and build tools", "h2"))
+    story.append(
+        bullets(
+            [
+                "`std::cin >> value` extracts formatted input from standard input; `std::getline` reads a full line.",
+                "`auto` asks the compiler to infer a static type; it does not make a variable dynamically typed.",
+                "Scope resolution `::` selects a namespace or class scope, e.g. `std::cout` or `Stack<T>::pop`.",
+                "Default parameters go in the declaration, e.g. `void log(int level = 1);`.",
+                "`new`/`delete` exist in C++, but prefer RAII and smart pointers. Use `nullptr` instead of `NULL` for pointer null values.",
+                "CMake quick flow: write `CMakeLists.txt`; `cmake -S . -B build` configures; `cmake --build build` builds using generated build files.",
+            ]
+        )
+    )
+    story.append(code(
+        r"""
+cmake_minimum_required(VERSION 3.10)
+project(sensor_app)
+add_executable(sensor_app main.cpp sensor.cpp)
+"""
+    ))
+    story.append(p("C++ multiple inheritance and object lifetime", "h2"))
+    story.append(
+        bullets(
+            [
+                "Multiple inheritance means one class derives from more than one base class.",
+                "A diamond can create two base subobjects; `virtual public Base` makes the shared base appear once.",
+                "The most-derived class constructs a virtual base directly. Destructors run in reverse construction order.",
+                "Constructor/destructor trace questions usually ask which objects are built first and destroyed last.",
+            ]
+        )
+    )
+    story.append(code(
+        r"""
+class Left : virtual public Base {};
+class Right : virtual public Base {};
+class Bottom : public Left, public Right {};
+"""
+    ))
+    story.append(p("Rust basics, control flow, and Cargo", "h2"))
+    story.append(
+        bullets(
+            [
+                "`let` creates an immutable binding; `let mut` allows reassignment/mutation; shadowing with `let` creates a new binding.",
+                "`const` is a named compile-time constant. Tuples group fixed-position values; arrays have fixed length.",
+                "Rust has runtime bounds checks for indexing; out-of-bounds indexing panics instead of causing C-style undefined behaviour.",
+                "`if` is an expression, so both branches must produce compatible types if used as a value.",
+                "`loop` can return a value with `break value`; loop labels let `break 'label` or `continue 'label` target an outer loop.",
+                "Doc comments use `///` before the item they document.",
+                "Cargo workflow: `cargo check` type-checks quickly, `cargo fmt` formats, `cargo clippy` lints, `cargo test` runs tests.",
+            ]
+        )
+    )
+    story.append(p("Rust data modelling and sorting", "h2"))
+    story.append(
+        bullets(
+            [
+                "A Rust `struct` names fields. An `impl` block adds methods; associated functions do not take `self`.",
+                "Enums model alternatives. `Option<T>` is an enum with `Some(T)` and `None`.",
+                "`match` must cover all cases. `if let Some(x) = value` is a compact way to handle one interesting case.",
+                "`Vec<T>` is growable heap storage; a slice `&[T]` borrows contiguous data from a vector or array.",
+                "`HashMap` lookup with `get` returns `Option<&V>`; `entry(key).or_insert(value)` gives a mutable reference for counting/accumulating.",
+                "`sort_by` uses a comparator returning `Ordering`; use `partial_cmp` for floats because `NaN` makes total ordering impossible.",
+            ]
+        )
+    )
+    story.append(code(
+        r"""
+readings.sort_by(|a, b| {
+    b.value
+        .partial_cmp(&a.value)
+        .unwrap_or(Ordering::Equal)
+        .then_with(|| a.id.cmp(&b.id))
+});
+"""
+    ))
+    story.append(PageBreak())
+
+
 def add_cross_language(story: list):
     story.append(p("Cross-Language Comparisons", "h1"))
     story.append(
@@ -979,6 +1104,73 @@ def add_cross_language(story: list):
                 ],
             ],
             [30, 46, 46, 48],
+        )
+    )
+    story.append(Spacer(1, 8))
+    story.append(p("Reading Files In C, C++, And Rust", "h1"))
+    story.append(
+        compact_table(
+            ["Language", "Typical code", "What to remember"],
+            [
+                [
+                    "C",
+                    "#include <stdio.h>\nFILE *fp = fopen(\"data.txt\", \"r\");\nif (fp == NULL) { /* handle */ }\nchar line[100];\nwhile (fgets(line, sizeof line, fp) != NULL) { /* use line */ }\nif (ferror(fp)) { /* read error */ }\nfclose(fp);",
+                    "`fopen` returns a stream pointer or `NULL`. `fgets` keeps the newline if it fits and writes `\\0`. After a read loop, `ferror` distinguishes read error from normal EOF.",
+                ],
+                [
+                    "C++",
+                    "#include <fstream>\n#include <string>\nstd::ifstream file(\"data.txt\");\nif (!file) { /* handle */ }\nstd::string line;\nwhile (std::getline(file, line)) { /* use line */ }",
+                    "`std::ifstream` is an input file stream object. Test the stream before reading. `std::getline` reads a whole line into `std::string` and removes the newline.",
+                ],
+                [
+                    "Rust",
+                    "use std::fs;\n\nfn load(path: &str) -> Result<String, std::io::Error> {\n    let text = fs::read_to_string(path)?;\n    Ok(text)\n}",
+                    "`read_to_string` returns `Result<String, io::Error>`. `?` unwraps `Ok(text)` or returns the `Err` early. Iterate with `text.lines()` for line-by-line parsing.",
+                ],
+            ],
+            [18, 78, 74],
+        )
+    )
+    story.append(Spacer(1, 8))
+    story.append(p("Common Includes And Imports", "h1"))
+    story.append(
+        p(
+            "Use this as a fast prompt when a question asks for code. You do not need every include every time; choose the one that matches the functions or types used.",
+            "note",
+        )
+    )
+    story.append(
+        compact_table(
+            ["Language", "Include/import/use", "Needed for"],
+            [
+                ["C", "#include <stdio.h>", "printf, scanf, fprintf, FILE, fopen, fclose, fgets, fgetc, fread, fwrite, fseek, rewind, fflush, stdout, stderr"],
+                ["C", "#include <stdlib.h>", "malloc, free, qsort, exit, atoi, atof, strtol"],
+                ["C", "#include <string.h>", "strlen, strcpy, strcat, strcmp, strerror, memcpy, memmove"],
+                ["C", "#include <ctype.h>", "isalpha, isdigit, isalnum, ispunct, tolower, toupper"],
+                ["C", "#include <errno.h>", "errno; only inspect it after a function has actually reported failure"],
+                ["C", "#include <assert.h>", "assert(condition) for exam fragments/tests"],
+                ["C", "#include <stddef.h>", "size_t, NULL in low-level helper code"],
+                ["C", "#include <limits.h>", "INT_MAX, INT_MIN and integer limits"],
+                ["C", "#include <stdbool.h>", "bool, true, false in C"],
+                ["C++", "#include <iostream>", "std::cout, std::cin, std::cerr, std::ostream"],
+                ["C++", "#include <string>", "std::string"],
+                ["C++", "#include <vector>", "std::vector"],
+                ["C++", "#include <memory>", "std::unique_ptr, std::shared_ptr, std::weak_ptr, std::make_unique, std::make_shared"],
+                ["C++", "#include <algorithm>", "std::sort, std::find, std::binary_search, std::count_if"],
+                ["C++", "#include <map>", "std::map"],
+                ["C++", "#include <unordered_map>", "std::unordered_map"],
+                ["C++", "#include <stdexcept>", "std::runtime_error, std::invalid_argument, out_of_range"],
+                ["C++", "#include <utility>", "std::move, std::pair"],
+                ["Rust", "use std::fs;", "fs::read_to_string and other filesystem helpers"],
+                ["Rust", "use std::io::{self, Read};", "io::Error and read_to_string on File"],
+                ["Rust", "use std::collections::HashMap;", "HashMap"],
+                ["Rust", "use std::sync::{Arc, Mutex};", "thread-safe shared ownership and locking"],
+                ["Rust", "use std::sync::mpsc;", "channels"],
+                ["Rust", "use std::thread;", "thread::spawn"],
+                ["Rust", "use std::cmp::Ordering;", "custom sort ordering and tie handling"],
+                ["Rust", "use std::error::Error;", "Box<dyn Error> function return types"],
+            ],
+            [18, 45, 107],
         )
     )
     story.append(Spacer(1, 8))
@@ -1043,6 +1235,7 @@ def build_pdf():
     add_c_section(story)
     add_cpp_section(story)
     add_rust_section(story)
+    add_remaining_rag_quick_hits(story)
     add_cross_language(story)
     add_rag_appendix(story, rag_rows)
 
