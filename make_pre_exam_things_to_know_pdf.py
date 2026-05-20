@@ -630,7 +630,7 @@ def add_priority_pages(story: list, summary, mock_rows, xlsx_rows, rag_rows):
         bullets(
             [
                 "First 10 minutes: read the personal priority table and the pinned traps.",
-                "Next 15 minutes: scan the C, C++, and Rust rule pages, especially red/amber topics.",
+                "Next 15 minutes: scan the personal high-frequency drills, then the C, C++, and Rust rule pages.",
                 "Final 5 minutes: test yourself from the mental checklist, not by rereading passively.",
             ]
         )
@@ -668,6 +668,117 @@ def add_priority_pages(story: list, summary, mock_rows, xlsx_rows, rag_rows):
             "small",
         )
     )
+    story.append(PageBreak())
+
+
+PERSONAL_DRILLS = {
+    "C pointers, memory, arrays, strings": [
+        "Before writing through `*p`, say out loud what storage `p` points at: stack object, array element, heap allocation, or nowhere valid.",
+        "For every allocation or copy, calculate bytes including the terminator: `strlen(src) + 1` for C strings, `n * sizeof *p` for arrays.",
+        "When an array is passed to a function, it decays to a pointer; pass the element count separately because `sizeof(values)` is then pointer size.",
+        "For generic helpers, convert `void *` to `char *` before byte offsets: `(char *)array + index * width`.",
+        "For linked-list removal, use `Node **` or a previous pointer so removing the head and a later node follow the same ownership rule.",
+        "Memory-tool reports are not optional warnings: an invalid read/write, use-after-free, or heap-buffer-overflow means the C program has undefined behaviour even if it prints the expected answer.",
+    ],
+    "C files, streams, buffering, diagnostics": [
+        "`fopen` can fail; handle `fp == NULL` before any read/write and use `errno`/`strerror` only after a function has reported failure.",
+        "`fgets` returns `NULL` on EOF or error; after character loops ending on `EOF`, use `ferror(fp)` to check whether a real read error happened.",
+        "`fread(out, sizeof *out, 1, fp) == 1` is the exact-record-read test; binary record seek offsets are usually `index * sizeof *out`.",
+        "`strtol` validation has three separate ideas: no digits (`end == text`), range (`errno == ERANGE`), and leftover/invalid/range constraints for the target type.",
+        "`stdout` is for normal output and may be buffered; `stderr` is for diagnostics. Use `fflush(stdout)` after progress text that must appear immediately.",
+        "Do not use unbounded `%s`; for `char buffer[20]`, `%19s` leaves space for `\\0`, and `fgets(buffer, sizeof buffer, stdin)` is usually safer.",
+    ],
+    "C preprocessor, headers, build": [
+        "Macros are text substitution before compilation. Parenthesise each argument and the whole result: `#define SQUARE(X) ((X) * (X))`.",
+        "A multi-statement macro used like one statement should be wrapped in `do { ... } while (0)`.",
+        "`static` at file scope gives internal linkage; it is how a C helper stays private to one `.c` file. C does not use `public`.",
+        "Headers expose declarations and need include guards. Source files define storage/functions. `extern` declares something defined elsewhere.",
+        "Makefile recipes start with a tab. The first target is the default. If `image.h` changes, any `.o` that depends on it should rebuild.",
+        "Object files are compiled separately, then linked. Libraries are collections of object files; CMake generates project build files but does not replace the compile/link idea.",
+    ],
+    "C++ classes, inheritance, polymorphism": [
+        "`class` defaults to private; `struct` defaults to public. Use accessors or friends for controlled access instead of exposing fields.",
+        "`protected` can be used inside derived member functions; `private` base members cannot be directly accessed by derived classes.",
+        "Public inheritance means an is-a relationship. Private/protected inheritance changes what outside code can treat as a base interface.",
+        "Virtual dispatch only happens through a base pointer/reference and only for virtual functions with a matching derived override.",
+        "Polymorphic base classes need `virtual ~Base() = default;` if objects may be deleted through base pointer type.",
+        "Diamond inheritance without virtual bases creates two base subobjects; `virtual public Base` shares one base subobject.",
+    ],
+    "C++ RAII, smart pointers, exceptions": [
+        "RAII ties resource lifetime to object lifetime: constructors/object creation acquire resources and destructors release them during normal exit or stack unwinding.",
+        "A raw owning pointer plus `delete[]` is not enough if the object is copyable; rule-of-three questions also need copy constructor and copy assignment handling.",
+        "`std::unique_ptr` is exclusive and move-only. Use `std::move(obj1)` to transfer ownership and expect the source to be empty but valid.",
+        "`std::shared_ptr` destroys the object when the last shared owner disappears. `weak_ptr` observes without extending lifetime and must be locked before use.",
+        "Catch standard exceptions as `const std::exception&` or a const reference to the specific exception to avoid copying and preserve the dynamic type.",
+        "Exceptions can jump control flow, but RAII objects still clean themselves up during stack unwinding.",
+    ],
+    "C++ templates, operators, STL algorithms": [
+        "`operator[]` returns `T&` when assignment through the subscript should mutate the stored element; return `const T&` for read-only const overloads.",
+        "`operator<<` should take and return `std::ostream&`; returning the stream is what lets `std::cout << a << b` chain.",
+        "Template member definitions outside the class need both lines: `template<typename T>` and `ReturnType Box<T>::method(...)`.",
+        "Template definitions usually live in headers because each translation unit needs the body to instantiate the exact type it uses.",
+        "`std::sort`, `std::binary_search`, and tie-breaker comparators must use the same ordering rule; descending data needs a descending comparator for binary search too.",
+        "Lambdas and function objects are just callable predicates/comparators. For `count_if`, the callable returns `true` for values to count.",
+    ],
+    "Rust ownership, borrowing, strings, slices": [
+        "A `String` move leaves the old binding unusable unless the type is copied or you borrow instead. Use `&str` for read-only text parameters.",
+        "Rust allows many immutable borrows or one mutable borrow. A `Vec::push` needs mutable access and may reallocate, so active element references block it.",
+        "A returned borrowed value needs a lifetime when it might come from either input: `fn choose<'a>(x: &'a str, y: &'a str) -> &'a str`.",
+        "`Box<T>` owns heap data with a fixed-size pointer; it is how recursive enums get a known size.",
+        "`Rc<T>` is single-thread reference counting; `Arc<T>` is atomic reference counting for shared ownership across threads.",
+        "Rust checks ownership, borrowing, and lifetimes at compile time; drops happen automatically when owners go out of scope.",
+    ],
+    "Rust Result, Option, parsing, tests": [
+        "`?` unwraps `Ok(value)` or returns the `Err(error)` early from the current function, so the function must return a compatible `Result`.",
+        "Use `Option<&T>` for possibly missing borrowed data instead of panicking by indexing. The caller must handle `Some` and `None`.",
+        "Convert missing pieces into errors with `ok_or_else`; convert parse errors with `map_err`; use `Box<dyn Error>` when a small exam function may return mixed error types.",
+        "`unwrap()` is a quick panic; `expect(\"message\")` is a panic with a useful broken-assumption message. Recoverable code should return `Result` instead.",
+        "A `let n = text.parse::<i32>()?;` statement needs a semicolon. A final `Ok(n)` expression usually should not.",
+        "Unit tests beside code can use `super::*` and see private helpers; integration tests in `tests/` use only public API.",
+    ],
+    "Rust iterators, traits, closures, concurrency": [
+        "Write the iterator item type at each step: `.iter()` yields references; `enumerate()` wraps items as `(usize, item)`; `filter` borrows each item for the predicate.",
+        "`filter_map` is ideal when `Option` values should be skipped and transformed in one pass.",
+        "`fold(start, |acc, item| next_acc)` must return the next accumulator. Assignment-style updates often return `()` by accident.",
+        "Generic code needs trait bounds for every operation it uses: compare with `PartialOrd`, print with `Display` or `Debug`, hash-map keys with `Eq + Hash`.",
+        "A closure that mutates captured state is `FnMut`; bind it with `let mut record = ...` before calling it more than once.",
+        "For threads, clone each `mpsc` sender, move the clone into the closure, drop the original sender, and remember `Mutex::lock()` returns a poison-aware `Result`.",
+    ],
+    "General exam technique and syntax precision": [
+        "When a question asks for code, write the exact signature first, then make each operator/return type match what the caller needs.",
+        "When a question asks for an explanation, name the rule, apply it to the given line, and state the observable consequence.",
+        "Most lost marks are small: missing semicolon, wrong reference type, no terminator space, unchecked return value, or comparator ordering mismatch.",
+    ],
+}
+
+
+def add_personal_focus_drills(story: list, summary: list[dict[str, int | str]]):
+    story.append(p("Personal High-Frequency Drills", "h1"))
+    story.append(
+        p(
+            "These sections are ordered from your mock mistakes, spreadsheet rows, and red RAG topics. Treat them as active recall prompts: cover the answers and force the rule before looking back.",
+            "note",
+        )
+    )
+    added: set[str] = set()
+    for item in summary:
+        bucket = str(item["bucket"])
+        drill_items = PERSONAL_DRILLS.get(bucket)
+        if not drill_items or bucket in added:
+            continue
+        added.add(bucket)
+        story.append(
+            KeepTogether(
+                [
+                    p(
+                        f"{bucket} - score {item['score']} | RAG red {item['red']} | mock {item['mock']} | sheet {item['xlsx']}",
+                        "h2",
+                    ),
+                    bullets(drill_items, "small"),
+                ]
+            )
+        )
+        story.append(Spacer(1, 4))
     story.append(PageBreak())
 
 
@@ -1232,6 +1343,7 @@ def build_pdf():
 
     story: list = []
     add_priority_pages(story, summary, mock_rows, xlsx_rows, rag_rows)
+    add_personal_focus_drills(story, summary)
     add_c_section(story)
     add_cpp_section(story)
     add_rust_section(story)
